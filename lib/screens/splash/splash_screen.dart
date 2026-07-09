@@ -61,17 +61,21 @@ class _SplashScreenState extends State<SplashScreen>
 
     _entranceController.forward();
 
-    // Uncomment when Login Screen is ready
-    /*
+    // Auto-navigate to Login Screen after 3 seconds
     Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
-        ),
-      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const LoginScreen(),
+            transitionDuration: const Duration(milliseconds: 600),
+            transitionsBuilder: (_, animation, __, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
+        );
+      }
     });
-    */
   }
 
   @override
