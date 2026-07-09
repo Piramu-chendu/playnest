@@ -1,0 +1,340 @@
+import 'package:flutter/material.dart';
+import '../../models/movie.dart';
+import '../../utils/app_colors.dart';
+import 'widgets/hero_banner.dart';
+import 'widgets/movie_card.dart';
+import 'widgets/continue_watching_card.dart';
+import 'widgets/section_header.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentNavIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: _currentNavIndex == 0
+          ? const _HomeBody()
+          : Center(
+              child: Text(
+                ["Home", "Categories", "Profile", "Settings"][_currentNavIndex],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F0A18),
+        border: Border(
+          top: BorderSide(
+            color: Colors.white.withOpacity(0.06),
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _navItem(Icons.home_rounded, "Home", 0),
+              _navItem(Icons.grid_view_rounded, "Categories", 1),
+              _navItem(Icons.person_outline_rounded, "Profile", 2),
+              _navItem(Icons.settings_outlined, "Settings", 3),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(IconData icon, String label, int index) {
+    final isSelected = _currentNavIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _currentNavIndex = index),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: isSelected
+              ? AppColors.primary.withOpacity(0.12)
+              : Colors.transparent,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppColors.primary : Colors.white38,
+              size: 26,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? AppColors.primary : Colors.white38,
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The scrollable home feed body.
+class _HomeBody extends StatelessWidget {
+  const _HomeBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        // ── Top App Bar ──
+        SliverToBoxAdapter(
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Row(
+                children: [
+                  // Logo
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      'assets/images/Playnest logo.jpg',
+                      width: 38,
+                      height: 38,
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // Search bar
+                  Expanded(
+                    child: Container(
+                      height: 42,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF171320),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: const Color(0xFF2E2444),
+                        ),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.search_rounded,
+                            color: Colors.white38,
+                            size: 20,
+                          ),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "Search movies, shows, or actors...",
+                              style: TextStyle(
+                                color: Colors.white30,
+                                fontSize: 13,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // Notification bell
+                  _iconButton(Icons.notifications_none_rounded),
+
+                  const SizedBox(width: 8),
+
+                  // Profile avatar
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF8B5CF6), Color(0xFFB56CFF)],
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.person_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        // ── Hero Banner ──
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: HeroBanner(),
+          ),
+        ),
+
+        // ── Trending Movies ──
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 28),
+            child: SectionHeader(
+              title: "Trending Movies",
+              onViewAll: () {},
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: _buildHorizontalMovieList(MovieData.trending),
+        ),
+
+        // ── Continue Watching ──
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.only(top: 28),
+            child: SectionHeader(title: "Continue Watching"),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: _buildContinueWatchingList(),
+        ),
+
+        // ── Popular Movies ──
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 28),
+            child: SectionHeader(
+              title: "Popular Movies",
+              onViewAll: () {},
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: _buildHorizontalMovieList(
+            MovieData.popular,
+            showRating: true,
+          ),
+        ),
+
+        // ── Recommended For You ──
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 28),
+            child: SectionHeader(
+              title: "Recommended For You",
+              onViewAll: () {},
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: _buildHorizontalMovieList(
+            MovieData.recommended,
+            cardWidth: 150,
+            cardHeight: 220,
+          ),
+        ),
+
+        // Bottom padding
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 20),
+        ),
+      ],
+    );
+  }
+
+  static Widget _iconButton(IconData icon) {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: const Color(0xFF171320),
+        border: Border.all(color: const Color(0xFF2E2444)),
+      ),
+      child: Icon(icon, color: Colors.white60, size: 22),
+    );
+  }
+
+  Widget _buildHorizontalMovieList(
+    List<Movie> movies, {
+    double cardWidth = 130,
+    double cardHeight = 190,
+    bool showRating = false,
+  }) {
+    return SizedBox(
+      height: cardHeight + 40,
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: movies.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        itemBuilder: (context, index) {
+          return MovieCard(
+            movie: movies[index],
+            width: cardWidth,
+            height: cardHeight,
+            showRating: showRating,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildContinueWatchingList() {
+    return SizedBox(
+      height: 170,
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: MovieData.continueWatching.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        itemBuilder: (context, index) {
+          return ContinueWatchingCard(
+            movie: MovieData.continueWatching[index],
+          );
+        },
+      ),
+    );
+  }
+}
