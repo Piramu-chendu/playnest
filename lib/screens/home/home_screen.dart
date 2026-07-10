@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/movie.dart';
 import '../../utils/app_colors.dart';
+import '../categories/categories_screen.dart';
 import 'widgets/hero_banner.dart';
 import 'widgets/movie_card.dart';
 import 'widgets/continue_watching_card.dart';
@@ -16,22 +17,33 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
 
+  /// All tab pages – using a list so IndexedStack keeps their state alive.
+  final List<Widget> _pages = const [
+    _HomeBody(),
+    CategoriesScreen(),
+    _PlaceholderPage(title: 'Profile'),
+    _PlaceholderPage(title: 'Settings'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: _currentNavIndex == 0
-          ? const _HomeBody()
-          : Center(
-              child: Text(
-                ["Home", "Categories", "Profile", "Settings"][_currentNavIndex],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        child: KeyedSubtree(
+          key: ValueKey<int>(_currentNavIndex),
+          child: _pages[_currentNavIndex],
+        ),
+      ),
       bottomNavigationBar: _buildBottomNav(),
     );
   }
@@ -281,7 +293,7 @@ class _HomeBody extends StatelessWidget {
     bool showRating = false,
   }) {
     return SizedBox(
-      height: cardHeight + 40,
+      height: cardHeight + 44,
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
         scrollDirection: Axis.horizontal,
@@ -316,3 +328,49 @@ class _HomeBody extends StatelessWidget {
     );
   }
 }
+
+/// A temporary placeholder for tabs that are not yet built.
+class _PlaceholderPage extends StatelessWidget {
+  final String title;
+
+  const _PlaceholderPage({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              title == 'Profile'
+                  ? Icons.person_outline_rounded
+                  : Icons.settings_outlined,
+              color: AppColors.primary.withOpacity(0.5),
+              size: 64,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Coming Soon',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.4),
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
