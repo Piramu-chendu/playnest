@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-
+import '../../services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../components/custom_button.dart';
 import '../../components/custom_textfield.dart';
 import '../../components/social_button.dart';
 import '../../utils/app_colors.dart';
+
 import '../home/home_screen.dart';
 import 'signup_screen.dart';
 
@@ -17,13 +19,19 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController emailController = TextEditingController();
+
   final TextEditingController passwordController = TextEditingController();
 
   bool rememberMe = false;
+
   bool isLoading = false;
 
+  final AuthService _authService = AuthService();
+
   late AnimationController _controller;
+
   late Animation<double> _floatAnimation;
+
   late Animation<double> _glowAnimation;
 
   @override
@@ -46,11 +54,98 @@ class _LoginScreenState extends State<LoginScreen>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
+  Future<void> loginUser() async {
+    if (emailController.text.trim().isEmpty) {
+      _showMessage("Please enter your email");
+
+      return;
+    }
+
+    if (!emailController.text.contains("@")) {
+      _showMessage("Please enter a valid email");
+
+      return;
+    }
+
+    if (passwordController.text.isEmpty) {
+      _showMessage("Please enter your password");
+
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await _authService.login(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case "user-not-found":
+          _showMessage("No account found with this email.");
+
+          break;
+
+        case "wrong-password":
+          _showMessage("Incorrect password.");
+
+          break;
+
+        case "invalid-email":
+          _showMessage("Invalid email address.");
+
+          break;
+
+        case "invalid-credential":
+          _showMessage("Invalid email or password.");
+
+          break;
+
+        default:
+          _showMessage(e.message ?? "Login failed.");
+      }
+    } catch (e) {
+      _showMessage(e.toString());
+    }
+
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+
+        behavior: SnackBarBehavior.floating,
+
+        backgroundColor: Colors.deepPurple,
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _controller.dispose();
+
     emailController.dispose();
+
     passwordController.dispose();
+
     super.dispose();
   }
 
@@ -69,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen>
               height: 320,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.purple.withOpacity(.12),
+                color: Colors.purple.withValues(alpha: .12),
               ),
             ),
           ),
@@ -81,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen>
               height: 260,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.deepPurple.withOpacity(.10),
+                color: Colors.deepPurple.withValues(alpha: .10),
               ),
             ),
           ),
@@ -98,13 +193,13 @@ class _LoginScreenState extends State<LoginScreen>
                   /// -------- Animated Floating Logo --------
                   AnimatedBuilder(
                     animation: _controller,
-                    builder: (_, __) => Transform.translate(
+                    builder: (_, _) => Transform.translate(
                       offset: Offset(0, _floatAnimation.value),
                       child: Container(
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.purpleAccent.withOpacity(.45),
+                              color: Colors.purpleAccent.withValues(alpha: .45),
                               blurRadius: _glowAnimation.value,
                             ),
                           ],
@@ -235,8 +330,24 @@ class _LoginScreenState extends State<LoginScreen>
 
                         // Forgot Password
                         GestureDetector(
-                          onTap: () {
-                            // TODO: Navigate to Forgot Password screen
+                          onTap: () async {
+                            if (emailController.text.trim().isEmpty) {
+                              _showMessage("Enter your email first.");
+
+                              return;
+                            }
+
+                            try {
+                              await _authService.resetPassword(
+                                emailController.text.trim(),
+                              );
+
+                              _showMessage("Password reset email sent.");
+                            } on FirebaseAuthException catch (e) {
+                              _showMessage(
+                                e.message ?? "Unable to send reset email.",
+                              );
+                            }
                           },
                           child: const Text(
                             "Forgot Password?",
@@ -254,17 +365,18 @@ class _LoginScreenState extends State<LoginScreen>
                   const SizedBox(height: 28),
 
                   /// -------- Login Button --------
-                  CustomButton(
-                    text: "Login",
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const HomeScreen(),
-                        ),
-                      );
-                    },
-                  ),
+                  isLoading
+                      ? const Center(
+                          child: SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: CircularProgressIndicator(
+                              color: Color(0xFFB56CFF),
+                              strokeWidth: 3,
+                            ),
+                          ),
+                        )
+                      : CustomButton(text: "Login", onPressed: loginUser),
 
                   const SizedBox(height: 24),
 
@@ -286,8 +398,11 @@ class _LoginScreenState extends State<LoginScreen>
                   const SizedBox(height: 24),
 
                   /// -------- Google Sign In --------
-                  SocialButton(onPressed: () {}),
-
+                  SocialButton(
+                    onPressed: () {
+                      _showMessage("Google Sign-In coming soon!");
+                    },
+                  ),
                   const SizedBox(height: 30),
 
                   /// -------- Sign Up Link --------
