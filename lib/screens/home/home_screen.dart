@@ -53,13 +53,11 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF0F0A18),
         border: Border(
-          top: BorderSide(
-            color: Colors.white.withOpacity(0.06),
-          ),
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -93,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           color: isSelected
-              ? AppColors.primary.withOpacity(0.12)
+              ? AppColors.primary.withValues(alpha: 0.12)
               : Colors.transparent,
         ),
         child: Column(
@@ -157,9 +155,7 @@ class _HomeBody extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xFF171320),
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: const Color(0xFF2E2444),
-                        ),
+                        border: Border.all(color: const Color(0xFF2E2444)),
                       ),
                       child: const Row(
                         children: [
@@ -201,7 +197,7 @@ class _HomeBody extends StatelessWidget {
                         colors: [Color(0xFF8B5CF6), Color(0xFFB56CFF)],
                       ),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         width: 1.5,
                       ),
                     ),
@@ -219,20 +215,14 @@ class _HomeBody extends StatelessWidget {
 
         // ── Hero Banner ──
         const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: HeroBanner(),
-          ),
+          child: Padding(padding: EdgeInsets.only(top: 8), child: HeroBanner()),
         ),
 
         // ── Trending Movies ──
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.only(top: 28),
-            child: SectionHeader(
-              title: "Trending Movies",
-              onViewAll: () {},
-            ),
+            child: SectionHeader(title: "Trending Movies", onViewAll: () {}),
           ),
         ),
         SliverToBoxAdapter(
@@ -246,25 +236,17 @@ class _HomeBody extends StatelessWidget {
             child: SectionHeader(title: "Continue Watching"),
           ),
         ),
-        SliverToBoxAdapter(
-          child: _buildContinueWatchingList(),
-        ),
+        SliverToBoxAdapter(child: _buildContinueWatchingList()),
 
         // ── Popular Movies ──
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.only(top: 28),
-            child: SectionHeader(
-              title: "Popular Movies",
-              onViewAll: () {},
-            ),
+            child: SectionHeader(title: "Popular Movies", onViewAll: () {}),
           ),
         ),
         SliverToBoxAdapter(
-          child: _buildHorizontalMovieList(
-            MovieData.popular,
-            showRating: true,
-          ),
+          child: _buildHorizontalMovieList(MovieData.popular, showRating: true),
         ),
 
         // ── Recommended For You ──
@@ -286,9 +268,7 @@ class _HomeBody extends StatelessWidget {
         ),
 
         // Bottom padding
-        const SliverToBoxAdapter(
-          child: SizedBox(height: 20),
-        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 20)),
       ],
     );
   }
@@ -319,7 +299,7 @@ class _HomeBody extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         itemCount: movies.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        separatorBuilder: (_, _) => const SizedBox(width: 14),
         itemBuilder: (context, index) {
           return MovieCard(
             movie: movies[index],
@@ -340,11 +320,9 @@ class _HomeBody extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         itemCount: MovieData.continueWatching.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        separatorBuilder: (_, _) => const SizedBox(width: 14),
         itemBuilder: (context, index) {
-          return ContinueWatchingCard(
-            movie: MovieData.continueWatching[index],
-          );
+          return ContinueWatchingCard(movie: MovieData.continueWatching[index]);
         },
       ),
     );

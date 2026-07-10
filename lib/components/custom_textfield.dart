@@ -37,7 +37,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         border: Border.all(color: const Color(0xFF4A3A67), width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            color: Colors.black.withValues(alpha: 0.25),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),

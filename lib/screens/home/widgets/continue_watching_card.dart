@@ -26,7 +26,7 @@ class ContinueWatchingCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
+                      color: Colors.black.withValues(alpha: 0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -39,7 +39,7 @@ class ContinueWatchingCard extends StatelessWidget {
                     width: 160,
                     height: 100,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, _, _) => Container(
                       width: 160,
                       height: 100,
                       decoration: BoxDecoration(
@@ -68,9 +68,9 @@ class ContinueWatchingCard extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     width: 1.5,
                   ),
                 ),
@@ -91,7 +91,7 @@ class ContinueWatchingCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: movie.watchProgress ?? 0,
               minHeight: 3,
-              backgroundColor: Colors.white.withOpacity(0.15),
+              backgroundColor: Colors.white.withValues(alpha: 0.15),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppColors.primary,
               ),
@@ -117,10 +117,7 @@ class ContinueWatchingCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               movie.progressLabel!,
-              style: const TextStyle(
-                color: Colors.white38,
-                fontSize: 11,
-              ),
+              style: const TextStyle(color: Colors.white38, fontSize: 11),
             ),
           ],
         ],
