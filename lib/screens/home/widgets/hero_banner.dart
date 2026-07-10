@@ -27,7 +27,7 @@ class HeroBanner extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: Image.asset(
-              'assets/images/neon_shadows.png',
+              'assets/trending assets/Thalapathy-Vijay-s-Master-movie-second-Look-Poster-.webp',
               width: double.infinity,
               height: 280,
               fit: BoxFit.cover,
@@ -75,7 +75,7 @@ class HeroBanner extends StatelessWidget {
                 // Tags
                 Row(
                   children: [
-                    _buildTag("NETFLIX", const Color(0xFFE50914)),
+                    _buildTag("TRENDING", const Color(0xFFE50914)),
                     const SizedBox(width: 8),
                     _buildTag("PREMIERE", AppColors.primary),
                   ],
@@ -85,7 +85,7 @@ class HeroBanner extends StatelessWidget {
 
                 // Title
                 const Text(
-                  "Neon Shadows:\nThe Final Drift",
+                  "Master",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 26,

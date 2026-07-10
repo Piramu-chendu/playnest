@@ -23,129 +23,109 @@ class Movie {
 
 /// Sample movie data for the home screen sections.
 class MovieData {
+  // ── Trending Movies ──
   static const List<Movie> trending = [
     Movie(
-      title: "The Silent Woods",
-      posterPath: "assets/images/silent_woods.png",
-      genre: "Horror",
-      rating: 8.2,
-    ),
-    Movie(
-      title: "Galaxy Questers",
-      posterPath: "assets/images/galaxy_questers.png",
-      genre: "Sci-Fi",
-      rating: 7.9,
-    ),
-    Movie(
-      title: "Rainy Echoes",
-      posterPath: "assets/images/rainy_echoes.png",
-      genre: "Drama",
+      title: "Coolie",
+      posterPath: "assets/trending assets/Rajinikanth.jpeg",
+      genre: "Action",
       rating: 8.5,
     ),
     Movie(
-      title: "Midnight Caller",
-      posterPath: "assets/images/midnight_caller.png",
-      genre: "Thriller",
-      rating: 7.4,
+      title: "Master",
+      posterPath: "assets/trending assets/Thalapathy-Vijay-s-Master-movie-second-Look-Poster-.webp",
+      genre: "Action",
+      rating: 8.7,
     ),
     Movie(
-      title: "Prism World",
-      posterPath: "assets/images/prism_world.png",
-      genre: "Fantasy",
-      rating: 8.0,
-    ),
-  ];
-
-  static const List<Movie> continueWatching = [
-    Movie(
-      title: "Vector Zero",
-      posterPath: "assets/images/vector_zero.png",
-      watchProgress: 0.65,
-      progressLabel: "S2 · E04 · 15m left",
-    ),
-    Movie(
-      title: "Mind Weaver",
-      posterPath: "assets/images/echoes_within.png",
-      watchProgress: 0.35,
-      progressLabel: "01 · E05 · 42m left",
-    ),
-    Movie(
-      title: "Neon Shadows",
-      posterPath: "assets/images/neon_shadows.png",
-      watchProgress: 0.80,
-      progressLabel: "S1 · E08 · 10m left",
-    ),
-  ];
-
-  static const List<Movie> popular = [
-    Movie(
-      title: "Midnight Caller",
-      posterPath: "assets/images/midnight_caller.png",
-      genre: "Noir",
+      title: "LIK",
+      posterPath: "assets/trending assets/maxresdefault.jpg",
+      genre: "Comedy",
       rating: 7.8,
     ),
     Movie(
-      title: "Summer Haze",
-      posterPath: "assets/images/rainy_echoes.png",
-      genre: "Romance",
+      title: "Karuppu",
+      posterPath: "assets/trending assets/OIP.webp",
+      genre: "Action",
       rating: 8.1,
     ),
+  ];
+
+  // ── Continue Watching ──
+  static const List<Movie> continueWatching = [
     Movie(
-      title: "Abyss",
-      posterPath: "assets/images/vector_zero.png",
+      title: "Coolie",
+      posterPath: "assets/trending assets/Rajinikanth.jpeg",
+      watchProgress: 0.65,
+      progressLabel: "S1 · E04 · 15m left",
+    ),
+    Movie(
+      title: "Project Hail Mary",
+      posterPath: "assets/popular assets/project-hail-mary-poster-2_rgb-scaled.jpg",
+      watchProgress: 0.35,
+      progressLabel: "01:42 · 42m left",
+    ),
+    Movie(
+      title: "The Hangover Part II",
+      posterPath: "assets/recommend assets/OIP.webp",
+      watchProgress: 0.80,
+      progressLabel: "01:15 · 10m left",
+    ),
+  ];
+
+  // ── Popular Movies ──
+  static const List<Movie> popular = [
+    Movie(
+      title: "Spider-Man: No Way Home",
+      posterPath: "assets/popular assets/OIP (1).webp",
       genre: "Action",
-      rating: 7.6,
+      rating: 8.3,
     ),
     Movie(
-      title: "Echoes Within",
-      posterPath: "assets/images/echoes_within.png",
-      genre: "Thriller",
-      rating: 8.4,
-    ),
-    Movie(
-      title: "City Lights",
-      posterPath: "assets/images/city_lights.png",
+      title: "The Sheep Detectives",
+      posterPath: "assets/popular assets/OIP.webp",
       genre: "Comedy",
+      rating: 7.5,
+    ),
+    Movie(
+      title: "Project Hail Mary",
+      posterPath: "assets/popular assets/project-hail-mary-poster-2_rgb-scaled.jpg",
+      genre: "Sci-Fi",
+      rating: 8.8,
+    ),
+    Movie(
+      title: "Obsession",
+      posterPath: "assets/popular assets/th.webp",
+      genre: "Thriller",
       rating: 7.9,
     ),
   ];
 
+  // ── Recommended For You ──
   static const List<Movie> recommended = [
     Movie(
-      title: "Prism World",
-      posterPath: "assets/images/prism_world.png",
-      genre: "Fantasy",
-      rating: 8.0,
-    ),
-    Movie(
-      title: "The Wild Feast",
-      posterPath: "assets/images/wild_feast.png",
-      genre: "Adventure",
-      rating: 7.7,
-    ),
-    Movie(
-      title: "Moonfall",
-      posterPath: "assets/images/moonfall.png",
-      genre: "Sci-Fi",
-      rating: 8.3,
-    ),
-    Movie(
-      title: "Fractured Mind",
-      posterPath: "assets/images/fractured_mind.png",
-      genre: "Thriller",
-      rating: 8.6,
-    ),
-    Movie(
-      title: "Shift Point",
-      posterPath: "assets/images/silent_woods.png",
+      title: "Scream 7",
+      posterPath: "assets/recommend assets/OIP (1).webp",
       genre: "Horror",
-      rating: 7.5,
+      rating: 7.6,
     ),
     Movie(
-      title: "Refractians",
-      posterPath: "assets/images/galaxy_questers.png",
-      genre: "Sci-Fi",
+      title: "The Angry Birds Movie 2",
+      posterPath: "assets/recommend assets/OIP (2).webp",
+      genre: "Animation",
       rating: 7.2,
+    ),
+    Movie(
+      title: "The Hangover Part II",
+      posterPath: "assets/recommend assets/OIP.webp",
+      genre: "Comedy",
+      rating: 7.8,
+    ),
+    Movie(
+      title: "Coolie",
+      posterPath: "assets/trending assets/Rajinikanth.jpeg",
+      genre: "Action",
+      rating: 8.5,
     ),
   ];
 }
