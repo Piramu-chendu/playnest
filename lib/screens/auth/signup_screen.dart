@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../services/email_service.dart';
+import '../../services/otp_service.dart';
+
+import 'verification.dart';
 
 import '../../components/custom_button.dart';
 import '../../components/custom_textfield.dart';
@@ -15,15 +19,24 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController nameController = TextEditingController();
+
   final TextEditingController emailController = TextEditingController();
+
   final TextEditingController passwordController = TextEditingController();
+
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
   bool isLoading = false;
 
+  final EmailService _emailService = EmailService();
+
+  final OtpService _otpService = OtpService();
+
   late AnimationController _controller;
+
   late Animation<double> _floatAnimation;
+
   late Animation<double> _glowAnimation;
 
   @override
@@ -46,13 +59,126 @@ class _SignupScreenState extends State<SignupScreen>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
+  Future<void> signUpUser() async {
+    if (nameController.text.trim().isEmpty) {
+      _showMessage("Please enter your full name");
+
+      return;
+    }
+
+    if (emailController.text.trim().isEmpty) {
+      _showMessage("Please enter your email");
+
+      return;
+    }
+
+    if (!emailController.text.contains("@")) {
+      _showMessage("Please enter a valid email");
+
+      return;
+    }
+
+    if (passwordController.text.isEmpty) {
+      _showMessage("Please enter your password");
+
+      return;
+    }
+
+    if (passwordController.text.length < 6) {
+      _showMessage("Password must be at least 6 characters");
+
+      return;
+    }
+
+    if (confirmPasswordController.text.isEmpty) {
+      _showMessage("Please confirm your password");
+
+      return;
+    }
+
+    if (passwordController.text != confirmPasswordController.text) {
+      _showMessage("Passwords do not match");
+
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      String otp = _otpService.generateOtp();
+
+      await _otpService.saveOtp(email: emailController.text.trim(), otp: otp);
+
+      bool sent = await _emailService.sendOtp(
+        userName: nameController.text.trim(),
+
+        email: emailController.text.trim(),
+
+        otp: otp,
+      );
+
+      if (!sent) {
+        _showMessage("Unable to send OTP.");
+
+        setState(() {
+          isLoading = false;
+        });
+
+        return;
+      }
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+
+        MaterialPageRoute(
+          builder: (_) => VerificationScreen(
+            name: nameController.text.trim(),
+
+            email: emailController.text.trim(),
+
+            password: passwordController.text,
+          ),
+        ),
+      );
+    } catch (e) {
+      _showMessage(e.toString());
+    }
+
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+
+        behavior: SnackBarBehavior.floating,
+
+        backgroundColor: Colors.deepPurple,
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _controller.dispose();
+
     nameController.dispose();
+
     emailController.dispose();
+
     passwordController.dispose();
+
     confirmPasswordController.dispose();
+
     super.dispose();
   }
 
@@ -70,7 +196,7 @@ class _SignupScreenState extends State<SignupScreen>
               height: 320,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.purple.withOpacity(.12),
+                color: Colors.purple.withValues(alpha: .12),
               ),
             ),
           ),
@@ -82,7 +208,7 @@ class _SignupScreenState extends State<SignupScreen>
               height: 260,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.deepPurple.withOpacity(.10),
+                color: Colors.deepPurple.withValues(alpha: .10),
               ),
             ),
           ),
@@ -96,13 +222,15 @@ class _SignupScreenState extends State<SignupScreen>
                   Center(
                     child: AnimatedBuilder(
                       animation: _controller,
-                      builder: (_, __) => Transform.translate(
+                      builder: (_, _) => Transform.translate(
                         offset: Offset(0, _floatAnimation.value),
                         child: Container(
                           decoration: BoxDecoration(
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.purpleAccent.withOpacity(.45),
+                                color: Colors.purpleAccent.withValues(
+                                  alpha: .45,
+                                ),
                                 blurRadius: _glowAnimation.value,
                               ),
                             ],
@@ -144,7 +272,7 @@ class _SignupScreenState extends State<SignupScreen>
                   ),
                   const SizedBox(height: 40),
                   const Text(
-                    "Create New Account",
+                    "Create Your Account",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 30,
@@ -153,7 +281,7 @@ class _SignupScreenState extends State<SignupScreen>
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    "Join thousands of movie lovers today.",
+                    "Create your account to receive a secure email verification code.",
                     style: TextStyle(color: Colors.white60, fontSize: 15),
                   ),
                   const SizedBox(height: 28),
@@ -188,12 +316,22 @@ class _SignupScreenState extends State<SignupScreen>
                   ),
                   const SizedBox(height: 28),
 
-                  CustomButton(
-                    text: "Create Account",
-                    showArrow: true,
-                    onPressed: () {},
-                  ),
-
+                  isLoading
+                      ? const Center(
+                          child: SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: CircularProgressIndicator(
+                              color: Color(0xFFB56CFF),
+                              strokeWidth: 3,
+                            ),
+                          ),
+                        )
+                      : CustomButton(
+                          text: "Send OTP",
+                          showArrow: true,
+                          onPressed: signUpUser,
+                        ),
                   const SizedBox(height: 24),
 
                   Row(
@@ -212,7 +350,11 @@ class _SignupScreenState extends State<SignupScreen>
 
                   const SizedBox(height: 24),
 
-                  SocialButton(onPressed: () {}),
+                  SocialButton(
+                    onPressed: () {
+                      _showMessage("Google Sign-In is coming soon!");
+                    },
+                  ),
 
                   const SizedBox(height: 30),
 
@@ -225,7 +367,9 @@ class _SignupScreenState extends State<SignupScreen>
                           style: TextStyle(color: Colors.white70),
                         ),
                         GestureDetector(
-                          onTap: () => Navigator.pop(context),
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
                           child: const Text(
                             "Sign In",
                             style: TextStyle(

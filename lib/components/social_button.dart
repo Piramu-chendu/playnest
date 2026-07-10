@@ -36,7 +36,7 @@ class _SocialButtonState extends State<SocialButton> {
             border: Border.all(color: const Color(0xFF3E3358)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.20),
+                color: Colors.black.withValues(alpha: 0.20),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               ),

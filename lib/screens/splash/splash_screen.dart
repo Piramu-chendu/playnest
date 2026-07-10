@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../auth/login_screen.dart';
-import '../auth/signup_screen.dart';
-import '../../components/custom_button.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,75 +11,97 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late AnimationController _entranceController;
-  late AnimationController _loopController;
-
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _entranceScale;
-
-  late Animation<double> _floatingAnimation;
+  late AnimationController _logoController;
+  late Animation<double> _floatAnimation;
   late Animation<double> _glowAnimation;
-  late Animation<double> _breathingAnimation;
+  late Animation<double> _scaleAnimation;
+
+  String _displayText = "";
+  bool _showText = true;
 
   @override
   void initState() {
     super.initState();
 
-    // Fade-in Animation
-    _entranceController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-
-    // Loop Animation
-    _loopController = AnimationController(
+    _logoController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat(reverse: true);
 
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _entranceController, curve: Curves.easeOut),
+    _floatAnimation = Tween<double>(begin: -8, end: 8).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeInOut),
     );
 
-    _entranceScale = Tween<double>(begin: 0.85, end: 1).animate(
-      CurvedAnimation(parent: _entranceController, curve: Curves.easeOutBack),
-    );
-
-    _floatingAnimation = Tween<double>(begin: -8, end: 8).animate(
-      CurvedAnimation(parent: _loopController, curve: Curves.easeInOut),
+    _scaleAnimation = Tween<double>(begin: 0.98, end: 1.03).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeInOut),
     );
 
     _glowAnimation = Tween<double>(begin: 20, end: 45).animate(
-      CurvedAnimation(parent: _loopController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _logoController, curve: Curves.easeInOut),
     );
 
-    _breathingAnimation = Tween<double>(begin: 0.98, end: 1.03).animate(
-      CurvedAnimation(parent: _loopController, curve: Curves.easeInOut),
-    );
+    _startSequence();
+  }
 
-    _entranceController.forward();
-
-    // Auto-navigate to Login Screen after 3 seconds
-    Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const LoginScreen(),
-            transitionDuration: const Duration(milliseconds: 600),
-            transitionsBuilder: (_, animation, __, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
-        );
-      }
+  Future<void> _type(String text) async {
+    setState(() {
+      _displayText = "";
+      _showText = true;
     });
+
+    for (int i = 0; i < text.length; i++) {
+      await Future.delayed(const Duration(milliseconds: 55));
+
+      if (!mounted) return;
+
+      setState(() {
+        _displayText += text[i];
+      });
+    }
+  }
+
+  Future<void> _startSequence() async {
+    // Wait while logo floats
+    await Future.delayed(const Duration(milliseconds: 1200));
+
+    // First typing
+    await _type("Welcome to PlayNest");
+
+    await Future.delayed(const Duration(milliseconds: 900));
+
+    // Fade out
+    if (mounted) {
+      setState(() {
+        _showText = false;
+      });
+    }
+
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    // Second typing
+    await _type("Watch.\nStream.\nEnjoy.");
+
+    // Keep text visible
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    // Navigate to Login
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 700),
+        pageBuilder: (_, _, _) => const LoginScreen(),
+        transitionsBuilder: (_, animation, _, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
   }
 
   @override
   void dispose() {
-    _entranceController.dispose();
-    _loopController.dispose();
+    _logoController.dispose();
     super.dispose();
   }
 
@@ -91,22 +111,18 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: const Color(0xFF09050F),
       body: SafeArea(
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              /// -------- Animated Logo --------
-              AnimatedBuilder(
-                animation: Listenable.merge([
-                  _entranceController,
-                  _loopController,
-                ]),
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _fadeAnimation.value,
-                    child: Transform.translate(
-                      offset: Offset(0, _floatingAnimation.value),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 30),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedBuilder(
+                  animation: _logoController,
+                  builder: (_, _) {
+                    return Transform.translate(
+                      offset: Offset(0, _floatAnimation.value),
                       child: Transform.scale(
-                        scale: _entranceScale.value * _breathingAnimation.value,
+                        scale: _scaleAnimation.value,
                         child: Container(
                           decoration: BoxDecoration(
                             boxShadow: [
@@ -125,88 +141,40 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 40),
-
-              /// -------- Welcome Text --------
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: ShaderMask(
-                  shaderCallback: (bounds) {
-                    return const LinearGradient(
-                      colors: [
-                        Color(0xFFE5B8FF),
-                        Color(0xFFB56CFF),
-                        Colors.white,
-                      ],
-                    ).createShader(bounds);
-                  },
-                  child: const Text(
-                    "Welcome to PlayNest",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 15),
-
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 40),
-                  child: Text(
-                    "Dive into unlimited movies,\nTV shows and endless entertainment.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 17,
-                      height: 1.6,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 55),
-
-              /// -------- Static Buttons --------
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 35),
-                child: CustomButton(
-                  text: "Sign Up",
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const SignupScreen()),
                     );
                   },
                 ),
-              ),
 
-              const SizedBox(height: 18),
+                const SizedBox(height: 45),
 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 35),
-                child: CustomButton(
-                  text: "Sign In",
-                  isOutlined: true,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    );
-                  },
+                AnimatedOpacity(
+                  opacity: _showText ? 1 : 0,
+                  duration: const Duration(milliseconds: 500),
+                  child: ShaderMask(
+                    shaderCallback: (bounds) {
+                      return const LinearGradient(
+                        colors: [
+                          Color(0xFFE5B8FF),
+                          Color(0xFFB56CFF),
+                          Colors.white,
+                        ],
+                      ).createShader(bounds);
+                    },
+                    child: Text(
+                      _displayText,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        height: 1.5,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
