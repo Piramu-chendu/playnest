@@ -301,7 +301,7 @@ class _HomeBody extends StatelessWidget {
     bool showRating = false,
   }) {
     return SizedBox(
-      height: cardHeight + 40,
+      height: cardHeight + 44,
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
         scrollDirection: Axis.horizontal,
