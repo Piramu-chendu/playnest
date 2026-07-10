@@ -117,7 +117,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               colors: [Color(0xFF8B5CF6), Color(0xFFB56CFF)],
                             ),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               width: 1.5,
                             ),
                           ),
@@ -215,15 +215,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   mainAxisSpacing: 12,
                   childAspectRatio: 0.85,
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return _CategoryCard(
-                      category: filtered[index],
-                      index: index,
-                    );
-                  },
-                  childCount: filtered.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  return _CategoryCard(category: filtered[index], index: index);
+                }, childCount: filtered.length),
               ),
             ),
           ],
@@ -270,9 +264,10 @@ class _CategoryCardState extends State<_CategoryCard>
       duration: const Duration(milliseconds: 120),
       vsync: this,
     );
-    _scaleAnim = Tween<double>(begin: 1.0, end: 0.94).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnim = Tween<double>(
+      begin: 1.0,
+      end: 0.94,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -297,7 +292,7 @@ class _CategoryCardState extends State<_CategoryCard>
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withValues(alpha: 0.4),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -312,13 +307,13 @@ class _CategoryCardState extends State<_CategoryCard>
                 Image.asset(
                   widget.category.imagePath,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppColors.primary.withOpacity(0.4),
+                          AppColors.primary.withValues(alpha: 0.4),
                           AppColors.background,
                         ],
                       ),
@@ -342,8 +337,8 @@ class _CategoryCardState extends State<_CategoryCard>
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withOpacity(0.1),
-                          Colors.black.withOpacity(0.5),
+                          Colors.black.withValues(alpha: 0.1),
+                          Colors.black.withValues(alpha: 0.5),
                         ],
                         stops: const [0.0, 0.5, 1.0],
                       ),
@@ -365,10 +360,10 @@ class _CategoryCardState extends State<_CategoryCard>
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
+                          color: Colors.white.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.18),
+                            color: Colors.white.withValues(alpha: 0.18),
                             width: 1,
                           ),
                         ),
