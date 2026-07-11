@@ -1,27 +1,89 @@
 import 'package:flutter/material.dart';
 import '../../../models/movie.dart';
-import '../../../utils/app_colors.dart';
 import '../../movie_detail/movie_detail_screen.dart';
 
 /// A reusable movie poster card with rounded corners and title.
 class MovieCard extends StatelessWidget {
   final Movie movie;
-  final double width;
-  final double height;
+  final double? width;
+  final double? height;
   final bool showTitle;
   final bool showRating;
+  final bool isResponsive;
 
   const MovieCard({
     super.key,
     required this.movie,
-    this.width = 130,
-    this.height = 190,
+    this.width,
+    this.height,
     this.showTitle = true,
     this.showRating = false,
+    this.isResponsive = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    // If not responsive, fall back to standard defaults (width: 130, height: 190)
+    final double? cardWidth = isResponsive ? null : (width ?? 130);
+    final double? cardHeight = isResponsive ? null : (height ?? 190);
+
+    Widget poster = Container(
+      width: cardWidth ?? double.infinity,
+      height: cardHeight ?? double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: movie.posterPath.startsWith('http')
+            ? Image.network(
+                movie.posterPath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _buildFallbackContainer(cardWidth, cardHeight),
+              )
+            : Image.asset(
+                movie.posterPath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _buildFallbackContainer(cardWidth, cardHeight),
+              ),
+      ),
+    );
+
+    // If responsive, wrap poster in Expanded to take up available height,
+    // otherwise wrap in a simple stack
+    Widget posterWrapper = isResponsive
+        ? Expanded(
+            child: Stack(
+              children: [
+                Positioned.fill(child: poster),
+                if (showRating && movie.rating != null)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: _buildRatingBadge(),
+                  ),
+              ],
+            ),
+          )
+        : Stack(
+            children: [
+              poster,
+              if (showRating && movie.rating != null)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: _buildRatingBadge(),
+                ),
+            ],
+          );
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -49,94 +111,11 @@ class MovieCard extends StatelessWidget {
         );
       },
       child: SizedBox(
-        width: width,
+        width: cardWidth,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Poster image
-            Stack(
-              children: [
-                Container(
-                  width: width,
-                  height: height,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: Image.asset(
-                      movie.posterPath,
-                      width: width,
-                      height: height,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => Container(
-                        width: width,
-                        height: height,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF2D1B4E), Color(0xFF1A1028)],
-                          ),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.movie_outlined,
-                            color: Colors.white38,
-                            size: 36,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Rating badge
-                if (showRating && movie.rating != null)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.star_rounded,
-                            color: Color(0xFFFFD700),
-                            size: 14,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            movie.rating!.toStringAsFixed(1),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-
+            posterWrapper,
             if (showTitle) ...[
               const SizedBox(height: 8),
               Text(
@@ -155,5 +134,58 @@ class MovieCard extends StatelessWidget {
       ),
     );
   }
-}
 
+  Widget _buildRatingBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 7,
+        vertical: 3,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.star_rounded,
+            color: Color(0xFFFFD700),
+            size: 14,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            movie.rating!.toStringAsFixed(1),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFallbackContainer(double? w, double? h) {
+    return Container(
+      width: w ?? double.infinity,
+      height: h ?? double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF2D1B4E), Color(0xFF1A1028)],
+        ),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.movie_outlined,
+          color: Colors.white38,
+          size: 36,
+        ),
+      ),
+    );
+  }
+}

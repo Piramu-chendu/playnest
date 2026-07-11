@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/movie.dart';
 import '../../utils/app_colors.dart';
 import '../categories/categories_screen.dart';
+import '../search/search_screen.dart';
 import 'widgets/hero_banner.dart';
 import 'widgets/movie_card.dart';
 import 'widgets/continue_watching_card.dart';
@@ -149,33 +150,43 @@ class _HomeBody extends StatelessWidget {
 
                   // Search bar
                   Expanded(
-                    child: Container(
-                      height: 42,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF171320),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFF2E2444)),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(
-                            Icons.search_rounded,
-                            color: Colors.white38,
-                            size: 20,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SearchScreen(),
                           ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              "Search movies, shows, or actors...",
-                              style: TextStyle(
-                                color: Colors.white30,
-                                fontSize: 13,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                        );
+                      },
+                      child: Container(
+                        height: 42,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF171320),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFF2E2444)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(
+                              Icons.search_rounded,
+                              color: Colors.white38,
+                              size: 20,
                             ),
-                          ),
-                        ],
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                "Search movies, shows, or actors...",
+                                style: TextStyle(
+                                  color: Colors.white30,
+                                  fontSize: 13,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
