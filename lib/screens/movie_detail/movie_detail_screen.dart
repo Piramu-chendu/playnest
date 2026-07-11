@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../../models/movie.dart';
 import '../../utils/app_colors.dart';
+import '../../services/wishlist_service.dart';
 
 /// A premium movie detail screen matching the glassmorphic OTT design.
 class MovieDetailScreen extends StatefulWidget {
@@ -25,6 +26,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
   @override
   void initState() {
     super.initState();
+    _isFavorited = WishlistService().isInWatchlist(widget.movie);
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -395,7 +397,10 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                                   ? Icons.favorite_rounded
                                   : Icons.favorite_border_rounded,
                               onTap: () {
-                                setState(() => _isFavorited = !_isFavorited);
+                                WishlistService().toggleWatchlist(widget.movie);
+                                setState(() {
+                                  _isFavorited = !_isFavorited;
+                                });
                               },
                               color: _isFavorited ? Colors.redAccent : null,
                             ),
@@ -497,33 +502,49 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                           ),
                         ),
                       const SizedBox(width: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
+                      GestureDetector(
+                        onTap: () {
+                          WishlistService().toggleWatchlist(movie);
+                          setState(() {
+                            _isFavorited = WishlistService().isInWatchlist(movie);
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.add, color: Colors.white, size: 16),
-                            SizedBox(width: 4),
-                            Text(
-                              "WATCHLIST",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.8,
-                              ),
+                          decoration: BoxDecoration(
+                            color: _isFavorited
+                                ? const Color(0xFF8B5CF6).withValues(alpha: 0.25)
+                                : Colors.white.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: _isFavorited
+                                  ? const Color(0xFF8B5CF6).withValues(alpha: 0.6)
+                                  : Colors.white.withValues(alpha: 0.2),
                             ),
-                          ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _isFavorited ? Icons.check_rounded : Icons.add,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _isFavorited ? "ADDED" : "WATCHLIST",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],

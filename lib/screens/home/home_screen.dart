@@ -3,6 +3,7 @@ import '../../models/movie.dart';
 import '../../utils/app_colors.dart';
 import '../categories/categories_screen.dart';
 import '../search/search_screen.dart';
+import '../profile/profile_screen.dart';
 import 'widgets/hero_banner.dart';
 import 'widgets/movie_card.dart';
 import 'widgets/continue_watching_card.dart';
@@ -22,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _pages = const [
     _HomeBody(),
     CategoriesScreen(),
-    _PlaceholderPage(title: 'Profile'),
+    ProfileScreen(),
     _PlaceholderPage(title: 'Settings'),
   ];
 
