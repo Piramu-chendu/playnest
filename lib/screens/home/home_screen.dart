@@ -4,6 +4,7 @@ import '../../utils/app_colors.dart';
 import '../categories/categories_screen.dart';
 import '../search/search_screen.dart';
 import '../profile/profile_screen.dart';
+import '../settings/settings_screen.dart';
 import 'widgets/hero_banner.dart';
 import 'widgets/movie_card.dart';
 import 'widgets/continue_watching_card.dart';
@@ -18,14 +19,24 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
+  late final List<Widget> _pages;
 
-  /// All tab pages – using a list so IndexedStack keeps their state alive.
-  final List<Widget> _pages = const [
-    _HomeBody(),
-    CategoriesScreen(),
-    ProfileScreen(),
-    _PlaceholderPage(title: 'Settings'),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const _HomeBody(),
+      const CategoriesScreen(),
+      const ProfileScreen(),
+      SettingsScreen(
+        onNavigateToProfile: () {
+          setState(() {
+            _currentNavIndex = 2;
+          });
+        },
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
