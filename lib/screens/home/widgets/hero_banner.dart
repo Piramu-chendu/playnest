@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../models/movie.dart';
 import '../../../utils/app_colors.dart';
 
-/// The hero/featured movie banner at the top of the home screen.
 class HeroBanner extends StatelessWidget {
-  const HeroBanner({super.key});
+  final Movie movie;
+
+  const HeroBanner({super.key, required this.movie});
 
   @override
   Widget build(BuildContext context) {
@@ -15,36 +17,43 @@ class HeroBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.purpleAccent.withValues(alpha: 0.15),
-            blurRadius: 25,
-            offset: const Offset(0, 10),
+            color: Colors.purpleAccent.withValues(alpha: 0.18),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Stack(
         children: [
-          // Background image
+          /// Banner Image
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
-            child: Image.asset(
-              'assets/trending assets/Thalapathy-Vijay-s-Master-movie-second-Look-Poster-.webp',
-              width: double.infinity,
-              height: 280,
+            child: Image.network(
+              movie.bannerUrl ?? "",
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF2D1B4E), Color(0xFF09050F)],
+              loadingBuilder: (context, child, progress) {
+                if (progress == null) return child;
+
+                return const Center(child: CircularProgressIndicator());
+              },
+              errorBuilder: (context, error, stackTrace) {
+                print(error);
+
+                return Container(
+                  color: Colors.deepPurple.shade900,
+                  child: const Center(
+                    child: Icon(
+                      Icons.image_not_supported,
+                      color: Colors.white,
+                      size: 50,
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
 
-          // Dark gradient overlay at bottom
+          /// Dark Overlay
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -55,123 +64,104 @@ class HeroBanner extends StatelessWidget {
                   colors: [
                     Colors.transparent,
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.4),
-                    Colors.black.withValues(alpha: 0.85),
+                    Colors.black.withValues(alpha: 0.55),
+                    Colors.black.withValues(alpha: 0.92),
                   ],
-                  stops: const [0, 0.35, 0.65, 1.0],
+                  stops: const [0, 0.35, 0.65, 1],
                 ),
               ),
             ),
           ),
 
-          // Content
+          /// Content
           Positioned(
             left: 20,
             right: 20,
-            bottom: 20,
+            bottom: 18,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Tags
+                /// Tags
                 Row(
                   children: [
-                    _buildTag("TRENDING", const Color(0xFFE50914)),
+                    _tag(movie.genre ?? "Movie", const Color(0xFFE50914)),
+
                     const SizedBox(width: 8),
-                    _buildTag("PREMIERE", AppColors.primary),
+
+                    _tag("${movie.rating ?? 0} ★", AppColors.primary),
                   ],
                 ),
 
                 const SizedBox(height: 12),
 
-                // Title
-                const Text(
-                  "Master",
-                  style: TextStyle(
+                /// Movie Title
+                Text(
+                  movie.title,
+                  style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    height: 1.2,
-                    letterSpacing: 0.3,
+                    fontSize: 28,
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
 
-                // Buttons row
+                Text(
+                  movie.description ?? "",
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: .9),
+                    fontSize: 13,
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
                 Row(
                   children: [
-                    // Play Button
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 22,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF8B5CF6), Color(0xFFB56CFF)],
+                    /// Play Button
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
                         ),
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(
-                              0xFFB56CFF,
-                            ).withValues(alpha: 0.4),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.play_arrow_rounded,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            "Play",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
+                      onPressed: () {
+                        // Video Player (next step)
+                      },
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text("Play"),
                     ),
 
                     const SizedBox(width: 12),
 
-                    // Watchlist Button
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.25),
+                    /// Watchlist Button
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: .4),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
                         ),
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.add, color: Colors.white, size: 20),
-                          SizedBox(width: 4),
-                          Text(
-                            "Watchlist",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                      onPressed: () {
+                        // Watchlist later
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text("Watchlist"),
                     ),
                   ],
                 ),
@@ -183,20 +173,19 @@ class HeroBanner extends StatelessWidget {
     );
   }
 
-  Widget _buildTag(String text, Color color) {
+  Widget _tag(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(6),
+        color: color,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         text,
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1,
+          fontWeight: FontWeight.bold,
+          fontSize: 11,
         ),
       ),
     );

@@ -74,12 +74,12 @@ class MovieCard extends StatelessWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(14),
-                    child: Image.asset(
+                    child: Image.network(
                       movie.posterPath,
                       width: width,
                       height: height,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => Container(
+                      errorBuilder: (_, __, ___) => Container(
                         width: width,
                         height: height,
                         decoration: BoxDecoration(

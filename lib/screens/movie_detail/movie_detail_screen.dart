@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../player/video_player_screen.dart';
 import '../../models/movie.dart';
 import '../../utils/app_colors.dart';
+import '../../services/movie_service.dart';
 
 /// A premium movie detail screen matching the glassmorphic OTT design.
 class MovieDetailScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class MovieDetailScreen extends StatefulWidget {
 
 class _MovieDetailScreenState extends State<MovieDetailScreen>
     with SingleTickerProviderStateMixin {
+  final MovieService _movieService = MovieService();
   late AnimationController _animController;
   late Animation<double> _fadeIn;
   bool _isFavorited = false;
@@ -39,14 +41,23 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     super.dispose();
   }
 
-  Future<void> _launchTrailer() async {
-    final url = widget.movie.trailerUrl;
-    if (url != null && url.isNotEmpty) {
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
+  void _playTrailer() {
+    if (widget.movie.trailerUrl == null || widget.movie.trailerUrl!.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Trailer not available")));
+      return;
     }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VideoPlayerScreen(
+          videoUrl: widget.movie.trailerUrl!,
+          title: widget.movie.title,
+        ),
+      ),
+    );
   }
 
   @override
@@ -62,9 +73,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
           physics: const BouncingScrollPhysics(),
           slivers: [
             // ── Hero Poster / Trailer Section ──
-            SliverToBoxAdapter(
-              child: _buildHeroPoster(movie, screenWidth),
-            ),
+            SliverToBoxAdapter(child: _buildHeroPoster(movie, screenWidth)),
 
             // ── Movie Info Section ──
             SliverToBoxAdapter(
@@ -207,75 +216,97 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
             ),
 
             SliverToBoxAdapter(
-              child: SizedBox(
-                height: 200,
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: _getRelatedMovies(movie).length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 14),
-                  itemBuilder: (context, index) {
-                    final related = _getRelatedMovies(movie)[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => MovieDetailScreen(movie: related),
-                          ),
-                        );
-                      },
-                      child: SizedBox(
-                        width: 120,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 120,
-                              height: 165,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.asset(
-                                  related.posterPath,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => Container(
-                                    color: const Color(0xFF1A1028),
-                                    child: const Icon(
-                                      Icons.movie_outlined,
-                                      color: Colors.white24,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              related.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+              child: FutureBuilder<List<Movie>>(
+                future: _movieService.getRelatedMovies(
+                  movie.genre ?? '',
+                  movie.title,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SizedBox(
+                      height: 220,
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const SizedBox(
+                      height: 120,
+                      child: Center(
+                        child: Text(
+                          "No related movies",
+                          style: TextStyle(color: Colors.white70),
                         ),
                       ),
                     );
-                  },
-                ),
+                  }
+
+                  final relatedMovies = snapshot.data!;
+
+                  return SizedBox(
+                    height: 230,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: relatedMovies.length,
+                      itemBuilder: (context, index) {
+                        final related = relatedMovies[index];
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 14),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      MovieDetailScreen(movie: related),
+                                ),
+                              );
+                            },
+                            child: SizedBox(
+                              width: 120,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.network(
+                                      related.posterPath,
+                                      width: 120,
+                                      height: 170,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        width: 120,
+                                        height: 170,
+                                        color: Colors.grey.shade900,
+                                        child: const Icon(
+                                          Icons.movie,
+                                          color: Colors.white54,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 8),
+
+                                  Text(
+                                    related.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
             ),
 
@@ -295,19 +326,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
         children: [
           // Background poster
           Positioned.fill(
-            child: Image.asset(
-              movie.posterPath,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF2D1B4E), Color(0xFF09050F)],
-                  ),
-                ),
-              ),
-            ),
+            child: Image.network(movie.posterPath, fit: BoxFit.cover),
           ),
 
           // Gradient overlay (dark at bottom)
@@ -350,10 +369,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                     ),
                     Row(
                       children: [
-                        _glassButton(
-                          icon: Icons.share_rounded,
-                          onTap: () {},
-                        ),
+                        _glassButton(icon: Icons.share_rounded, onTap: () {}),
                         const SizedBox(width: 10),
                         _glassButton(
                           icon: _isFavorited
@@ -376,7 +392,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
           Positioned.fill(
             child: Center(
               child: GestureDetector(
-                onTap: _launchTrailer,
+                onTap: _playTrailer,
                 child: Container(
                   width: 64,
                   height: 64,
@@ -404,7 +420,39 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
               ),
             ),
           ),
-
+          Positioned(
+            left: 20,
+            bottom: 60,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.redAccent.withValues(alpha: 0.4),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.play_arrow_rounded, color: Colors.white, size: 16),
+                  SizedBox(width: 4),
+                  Text(
+                    "TRAILER",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           // IMDb-style rating badge & watchlist pill at bottom-left
           Positioned(
             left: 20,
@@ -504,9 +552,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: Colors.black.withValues(alpha: 0.35),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.15),
-          ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
         ),
         child: Icon(icon, color: color ?? Colors.white, size: 22),
       ),
@@ -587,7 +633,9 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
         // Play button
         Expanded(
           child: GestureDetector(
-            onTap: _launchTrailer,
+            onTap: () {
+              // TODO: Play Full Movie
+            },
             child: Container(
               height: 50,
               decoration: BoxDecoration(
@@ -606,11 +654,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.play_arrow_rounded,
-                    color: Colors.white,
-                    size: 26,
-                  ),
+                  Icon(Icons.play_arrow_rounded, color: Colors.white, size: 26),
                   SizedBox(width: 6),
                   Text(
                     "Play",
@@ -635,9 +679,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
           ),
           child: const Icon(
             Icons.download_rounded,
@@ -660,9 +702,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
           decoration: BoxDecoration(
             color: AppColors.primary.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.3),
-            ),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
           ),
           child: Text(
             tag.toUpperCase(),
@@ -700,10 +740,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  avatarColor,
-                  avatarColor.withValues(alpha: 0.6),
-                ],
+                colors: [avatarColor, avatarColor.withValues(alpha: 0.6)],
               ),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.15),
@@ -745,10 +782,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white38,
-              fontSize: 10,
-            ),
+            style: const TextStyle(color: Colors.white38, fontSize: 10),
           ),
         ],
       ),
@@ -773,33 +807,4 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     Color(0xFF6366F1),
     Color(0xFF14B8A6),
   ];
-
-  // ── Related movies (simple matching by genre) ──
-  List<Movie> _getRelatedMovies(Movie current) {
-    final allMovies = [
-      ...MovieData.trending,
-      ...MovieData.popular,
-      ...MovieData.recommended,
-    ];
-
-    // Remove duplicates by title
-    final seen = <String>{};
-    final unique = <Movie>[];
-    for (final m in allMovies) {
-      if (m.title != current.title && seen.add(m.title)) {
-        unique.add(m);
-      }
-    }
-
-    // Prefer same genre movies first
-    if (current.genre != null) {
-      unique.sort((a, b) {
-        final aMatch = a.genre == current.genre ? 0 : 1;
-        final bMatch = b.genre == current.genre ? 0 : 1;
-        return aMatch.compareTo(bMatch);
-      });
-    }
-
-    return unique.take(6).toList();
-  }
 }

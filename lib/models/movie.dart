@@ -1,51 +1,79 @@
 /// Represents a movie entity used across the app.
 class Movie {
   final String title;
+
+  /// Cloudinary Poster URL
   final String posterPath;
+
+  /// Cloudinary Banner URL
+  final String? bannerUrl;
+
+  /// Cloudinary Movie Video URL
+  final String? videoUrl;
+
   final String? genre;
   final double? rating;
 
-  /// For "Continue Watching" – progress from 0.0 to 1.0
+  /// For "Continue Watching"
   final double? watchProgress;
 
-  /// For "Continue Watching" – e.g. "S2 · E04 · 15m left"
+  /// Example: "S1 · E04 · 15m left"
   final String? progressLabel;
 
-  /// Movie description / synopsis
+  /// Movie description
   final String? description;
 
-  /// Duration string e.g. "2H 45M"
+  /// Duration (e.g. 2H 45M)
   final String? duration;
 
   /// Release year
   final String? year;
 
-  /// Genre tags for chips e.g. ["Action", "Thriller", "Drama"]
+  /// Genre tags
   final List<String>? tags;
 
-  /// Cast members – list of {"name": "...", "role": "..."}
+  /// Cast members
   final List<Map<String, String>>? cast;
 
-  /// YouTube trailer URL
+  /// Trailer URL
   final String? trailerUrl;
 
-  /// Director name
+  /// Director
   final String? director;
+
+  /// Firestore Flags
+  final bool featured;
+  final bool trending;
+  final bool popular;
+  final bool recommended;
 
   const Movie({
     required this.title,
     required this.posterPath,
+
+    this.bannerUrl,
+    this.videoUrl,
+
     this.genre,
     this.rating,
+
     this.watchProgress,
     this.progressLabel,
+
     this.description,
     this.duration,
     this.year,
+
     this.tags,
     this.cast,
+
     this.trailerUrl,
     this.director,
+
+    this.featured = false,
+    this.trending = false,
+    this.popular = false,
+    this.recommended = false,
   });
 }
 
@@ -74,7 +102,8 @@ class MovieData {
     ),
     Movie(
       title: "Master",
-      posterPath: "assets/trending assets/Thalapathy-Vijay-s-Master-movie-second-Look-Poster-.webp",
+      posterPath:
+          "assets/trending assets/Thalapathy-Vijay-s-Master-movie-second-Look-Poster-.webp",
       genre: "Action",
       rating: 8.7,
       description:
@@ -156,7 +185,8 @@ class MovieData {
     ),
     Movie(
       title: "Project Hail Mary",
-      posterPath: "assets/popular assets/project-hail-mary-poster-2_rgb-scaled.jpg",
+      posterPath:
+          "assets/popular assets/project-hail-mary-poster-2_rgb-scaled.jpg",
       watchProgress: 0.35,
       progressLabel: "01:42 · 42m left",
       description:
@@ -240,7 +270,8 @@ class MovieData {
     ),
     Movie(
       title: "Project Hail Mary",
-      posterPath: "assets/popular assets/project-hail-mary-poster-2_rgb-scaled.jpg",
+      posterPath:
+          "assets/popular assets/project-hail-mary-poster-2_rgb-scaled.jpg",
       genre: "Sci-Fi",
       rating: 8.8,
       description:

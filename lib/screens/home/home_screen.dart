@@ -6,6 +6,9 @@ import 'widgets/hero_banner.dart';
 import 'widgets/movie_card.dart';
 import 'widgets/continue_watching_card.dart';
 import 'widgets/section_header.dart';
+import 'widgets/firestore_movie_list.dart';
+import '../../services/movie_service.dart';
+import 'widgets/hero_carousel.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -212,7 +215,10 @@ class _HomeBody extends StatelessWidget {
 
         // ── Hero Banner ──
         const SliverToBoxAdapter(
-          child: Padding(padding: EdgeInsets.only(top: 8), child: HeroBanner()),
+          child: Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: HeroCarousel(),
+          ),
         ),
 
         // ── Trending Movies ──
@@ -222,9 +228,7 @@ class _HomeBody extends StatelessWidget {
             child: SectionHeader(title: "Trending Movies", onViewAll: () {}),
           ),
         ),
-        SliverToBoxAdapter(
-          child: _buildHorizontalMovieList(MovieData.trending),
-        ),
+        SliverToBoxAdapter(child: const FirestoreMovieList()),
 
         // ── Continue Watching ──
         const SliverToBoxAdapter(
