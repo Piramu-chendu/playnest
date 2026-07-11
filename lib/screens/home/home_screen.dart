@@ -35,10 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
         switchInCurve: Curves.easeOutCubic,
         switchOutCurve: Curves.easeInCubic,
         transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
         child: KeyedSubtree(
           key: ValueKey<int>(_currentNavIndex),
@@ -358,7 +355,7 @@ class _PlaceholderPage extends StatelessWidget {
               title == 'Profile'
                   ? Icons.person_outline_rounded
                   : Icons.settings_outlined,
-              color: AppColors.primary.withOpacity(0.5),
+              color: AppColors.primary.withValues(alpha: 0.5),
               size: 64,
             ),
             const SizedBox(height: 16),
@@ -374,7 +371,7 @@ class _PlaceholderPage extends StatelessWidget {
             Text(
               'Coming Soon',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.4),
+                color: Colors.white.withValues(alpha: 0.4),
                 fontSize: 14,
               ),
             ),
@@ -384,4 +381,3 @@ class _PlaceholderPage extends StatelessWidget {
     );
   }
 }
-

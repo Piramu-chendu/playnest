@@ -239,7 +239,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 "We've sent a verification code to",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(.75),
+                  color: Colors.white.withValues(alpha: .75),
                   fontSize: 16,
                 ),
               ),
@@ -316,7 +316,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     ? "Resend OTP in ${seconds}s"
                     : "Didn't receive the OTP?",
                 style: TextStyle(
-                  color: Colors.white.withOpacity(.75),
+                  color: Colors.white.withValues(alpha: .75),
                   fontSize: 15,
                 ),
               ),
