@@ -25,100 +25,11 @@ class _SearchScreenState extends State<SearchScreen> {
   bool _isSearching = false;
 
   // Static list of top search items matching user screenshot
-  final Movie oppenheimer = const Movie(
-    title: 'Oppenheimer',
-    posterPath: 'https://image.tmdb.org/t/p/w780/8FhOHQ62nZClv7g2tTYg562wb7U.jpg',
-    genre: 'Biography',
-    rating: 8.4,
-    description: 'The story of J. Robert Oppenheimer\'s role in the development of the atomic bomb during World War II.',
-    duration: '3h 0m',
-    year: '2023',
-    tags: ['Biography', 'Drama', 'History'],
-    trailerUrl: 'https://www.youtube.com/watch?v=uYPbbEs1df0',
-    director: 'Christopher Nolan',
-    cast: [
-      {'name': 'Cillian Murphy', 'role': 'J. Robert Oppenheimer'},
-      {'name': 'Emily Blunt', 'role': 'Kitty Oppenheimer'},
-      {'name': 'Matt Damon', 'role': 'Leslie Groves'},
-      {'name': 'Robert Downey Jr.', 'role': 'Lewis Strauss'},
-    ],
-  );
-
-  final Movie avatar = const Movie(
-    title: 'Avatar: The Way of Water',
-    posterPath: 'https://image.tmdb.org/t/p/w500/t6z0a1k11Q6QAe0ujEM4nK536Ju.jpg',
-    genre: 'Sci-Fi',
-    rating: 7.6,
-    description: 'Jake Sully lives with his newfound family on Pandora. When a familiar threat returns, he must protect their home.',
-    duration: '3h 12m',
-    year: '2022',
-    tags: ['Sci-Fi', 'Action', 'Adventure'],
-    trailerUrl: 'https://www.youtube.com/watch?v=d9MyW72ELq0',
-    director: 'James Cameron',
-    cast: [
-      {'name': 'Sam Worthington', 'role': 'Jake Sully'},
-      {'name': 'Zoe Saldana', 'role': 'Neytiri'},
-      {'name': 'Sigourney Weaver', 'role': 'Kiri'},
-      {'name': 'Kate Winslet', 'role': 'Ronal'},
-    ],
-  );
-
-  final Movie johnWick = const Movie(
-    title: 'John Wick: Chapter 4',
-    posterPath: 'https://image.tmdb.org/t/p/w500/vZ0K0u4423rJee68mTMlKuw812Z.jpg',
-    genre: 'Action',
-    rating: 7.7,
-    description: 'John Wick uncovers a path to defeating The High Table. But first, he must face a new enemy with powerful alliances.',
-    duration: '2h 49m',
-    year: '2023',
-    tags: ['Action', 'Thriller', 'Crime'],
-    trailerUrl: 'https://www.youtube.com/watch?v=qEVUtrk8_B4',
-    director: 'Chad Stahelski',
-    cast: [
-      {'name': 'Keanu Reeves', 'role': 'John Wick'},
-      {'name': 'Donnie Yen', 'role': 'Caine'},
-      {'name': 'Bill Skarsgård', 'role': 'Marquis'},
-      {'name': 'Laurence Fishburne', 'role': 'Bowery King'},
-    ],
-  );
-
-  final Movie spiderman = const Movie(
-    title: 'Spider-Man: Across the Spider-Verse',
-    posterPath: 'https://image.tmdb.org/t/p/w500/8VtB7vST242NpjS7wt8vLX6fb9w.jpg',
-    genre: 'Animation',
-    rating: 8.6,
-    description: 'Miles Morales is catapulted across the Multiverse, encountering the Spider-Society protecting its existence.',
-    duration: '2h 20m',
-    year: '2023',
-    tags: ['Animation', 'Action', 'Adventure'],
-    trailerUrl: 'https://www.youtube.com/watch?v=shW9i6k8cB0',
-    director: 'Joaquim Dos Santos',
-    cast: [
-      {'name': 'Shameik Moore', 'role': 'Miles Morales'},
-      {'name': 'Hailee Steinfeld', 'role': 'Gwen Stacy'},
-      {'name': 'Oscar Isaac', 'role': 'Miguel O\'Hara'},
-      {'name': 'Jake Johnson', 'role': 'Peter B. Parker'},
-    ],
-  );
-
-  final Movie dune = const Movie(
-    title: 'Dune: Part Two',
-    posterPath: 'https://image.tmdb.org/t/p/w500/czembhyVFlkr6HQzkjXL562JtQQ.jpg',
-    genre: 'Sci-Fi',
-    rating: 8.6,
-    description: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.',
-    duration: '2h 46m',
-    year: '2024',
-    tags: ['Sci-Fi', 'Adventure', 'Drama'],
-    trailerUrl: 'https://www.youtube.com/watch?v=Way9Dexny3w',
-    director: 'Denis Villeneuve',
-    cast: [
-      {'name': 'Timothée Chalamet', 'role': 'Paul Atreides'},
-      {'name': 'Zendaya', 'role': 'Chani'},
-      {'name': 'Rebecca Ferguson', 'role': 'Lady Jessica'},
-      {'name': 'Austin Butler', 'role': 'Feyd-Rautha Harkonnen'},
-    ],
-  );
+  final Movie oppenheimer = MovieData.oppenheimer;
+  final Movie avatar = MovieData.avatar;
+  final Movie johnWick = MovieData.johnWick;
+  final Movie spiderman = MovieData.spiderman;
+  final Movie dune = MovieData.dune;
 
   @override
   void initState() {
@@ -527,20 +438,35 @@ class _SearchScreenState extends State<SearchScreen> {
                 Positioned.fill(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      oppenheimer.posterPath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF2D1B4E), Color(0xFF09050F)],
+                    child: oppenheimer.posterPath.startsWith('http')
+                        ? Image.network(
+                            oppenheimer.posterPath,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Color(0xFF2D1B4E), Color(0xFF09050F)],
+                                ),
+                              ),
+                              child: const Center(
+                                child: Icon(Icons.movie_outlined, color: Colors.white30, size: 50),
+                              ),
+                            ),
+                          )
+                        : Image.asset(
+                            oppenheimer.posterPath,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Color(0xFF2D1B4E), Color(0xFF09050F)],
+                                ),
+                              ),
+                              child: const Center(
+                                child: Icon(Icons.movie_outlined, color: Colors.white30, size: 50),
+                              ),
+                            ),
                           ),
-                        ),
-                        child: const Center(
-                          child: Icon(Icons.movie_outlined, color: Colors.white30, size: 50),
-                        ),
-                      ),
-                    ),
                   ),
                 ),
                 // Gradient overlay

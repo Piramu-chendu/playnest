@@ -140,7 +140,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                     const SizedBox(height: 24),
 
                     // Director
-                    // Director
                     if ((movie.director ?? '').isNotEmpty) ...[
                       Row(
                         children: [
@@ -273,21 +272,21 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      related.posterPath,
-                                      width: 120,
-                                      height: 170,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        width: 120,
-                                        height: 170,
-                                        color: Colors.grey.shade900,
-                                        child: const Icon(
-                                          Icons.movie,
-                                          color: Colors.white54,
-                                        ),
-                                      ),
-                                    ),
+                                    child: related.posterPath.startsWith('http')
+                                        ? Image.network(
+                                            related.posterPath,
+                                            width: 120,
+                                            height: 170,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) => _buildRelatedFallback(),
+                                          )
+                                        : Image.asset(
+                                            related.posterPath,
+                                            width: 120,
+                                            height: 170,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) => _buildRelatedFallback(),
+                                          ),
                                   ),
 
                                   const SizedBox(height: 8),
@@ -329,13 +328,22 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
         children: [
           // Background Poster
           Positioned.fill(
-            child: Image.network(
-              movie.bannerUrl?.isNotEmpty == true
+            child: () {
+              final imgPath = movie.bannerUrl?.isNotEmpty == true
                   ? movie.bannerUrl!
-                  : movie.posterPath,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _buildBackgroundFallback(),
-            ),
+                  : movie.posterPath;
+              return imgPath.startsWith('http')
+                  ? Image.network(
+                      imgPath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildBackgroundFallback(),
+                    )
+                  : Image.asset(
+                      imgPath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildBackgroundFallback(),
+                    );
+            }(),
           ),
 
           // Dark Gradient
