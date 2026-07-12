@@ -5,7 +5,9 @@ import '../auth/login_screen.dart';
 import '../watchlist/watchlist_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final VoidCallback? onNavigateToSettings;
+
+  const ProfileScreen({super.key, this.onNavigateToSettings});
 
   @override
   Widget build(BuildContext context) {
@@ -319,7 +321,11 @@ class ProfileScreen extends StatelessWidget {
                       _buildOptionItem(
                         icon: Icons.settings_outlined,
                         title: 'Settings',
-                        onTap: () {},
+                        onTap: () {
+                          if (onNavigateToSettings != null) {
+                            onNavigateToSettings!();
+                          }
+                        },
                       ),
                       _buildOptionItem(
                         icon: Icons.logout_rounded,

@@ -3,6 +3,7 @@ import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
 import 'about_screen.dart';
 import 'help_support_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback? onNavigateToProfile;
@@ -222,7 +223,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _buildNavigationItem(
                         icon: Icons.shield_outlined,
                         title: "Privacy Policy",
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PrivacyPolicyScreen(),
+                            ),
+                          );
+                        },
                       ),
                       _divider(),
                       _buildNavigationItem(

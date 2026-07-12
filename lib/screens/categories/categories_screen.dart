@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
+import 'category_detail_screen.dart';
 
 /// Data model for a genre category.
 class CategoryItem {
@@ -285,7 +286,14 @@ class _CategoryCardState extends State<_CategoryCard>
         onTapUp: (_) => _controller.reverse(),
         onTapCancel: () => _controller.reverse(),
         onTap: () {
-          // TODO: Navigate to category detail page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CategoryDetailScreen(
+                categoryName: widget.category.name,
+              ),
+            ),
+          );
         },
         child: Container(
           decoration: BoxDecoration(

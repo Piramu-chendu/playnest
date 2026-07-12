@@ -29,9 +29,21 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _pages = [
-      const _HomeBody(),
+      _HomeBody(
+        onNavigateToProfile: () {
+          setState(() {
+            _currentNavIndex = 2;
+          });
+        },
+      ),
       const CategoriesScreen(),
-      const ProfileScreen(),
+      ProfileScreen(
+        onNavigateToSettings: () {
+          setState(() {
+            _currentNavIndex = 3;
+          });
+        },
+      ),
       SettingsScreen(
         onNavigateToProfile: () {
           setState(() {
@@ -134,7 +146,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
 /// The scrollable home feed body.
 class _HomeBody extends StatelessWidget {
-  const _HomeBody();
+  final VoidCallback onNavigateToProfile;
+
+  const _HomeBody({required this.onNavigateToProfile});
 
   @override
   Widget build(BuildContext context) {
@@ -251,23 +265,26 @@ class _HomeBody extends StatelessWidget {
                   const SizedBox(width: 8),
 
                   // Profile avatar
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF8B5CF6), Color(0xFFB56CFF)],
+                  GestureDetector(
+                    onTap: onNavigateToProfile,
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF8B5CF6), Color(0xFFB56CFF)],
+                        ),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          width: 1.5,
+                        ),
                       ),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        width: 1.5,
+                      child: const Icon(
+                        Icons.person_rounded,
+                        color: Colors.white,
+                        size: 20,
                       ),
-                    ),
-                    child: const Icon(
-                      Icons.person_rounded,
-                      color: Colors.white,
-                      size: 20,
                     ),
                   ),
                 ],
