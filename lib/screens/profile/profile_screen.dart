@@ -3,6 +3,7 @@ import '../../services/auth_service.dart';
 import '../../services/wishlist_service.dart';
 import '../auth/login_screen.dart';
 import '../watchlist/watchlist_screen.dart';
+import '../downloads/downloads_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback? onNavigateToSettings;
@@ -13,8 +14,14 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authService = AuthService();
     final wishlistService = WishlistService();
-    final userEmail = authService.currentUser?.email ?? 'julian.sterling@nest.com';
-    final userName = userEmail.split('@').first.split('.').map((s) => s.isNotEmpty ? s[0].toUpperCase() + s.substring(1) : '').join(' ');
+    final userEmail =
+        authService.currentUser?.email ?? 'julian.sterling@nest.com';
+    final userName = userEmail
+        .split('@')
+        .first
+        .split('.')
+        .map((s) => s.isNotEmpty ? s[0].toUpperCase() + s.substring(1) : '')
+        .join(' ');
 
     return ListenableBuilder(
       listenable: wishlistService,
@@ -34,10 +41,7 @@ class ProfileScreen extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0xFF22113A),
-                        Color(0xFF09050F),
-                      ],
+                      colors: [Color(0xFF22113A), Color(0xFF09050F)],
                     ),
                   ),
                   padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
@@ -51,12 +55,16 @@ class ProfileScreen extends StatelessWidget {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: const Color(0xFFB56CFF).withValues(alpha: 0.8),
+                                color: const Color(
+                                  0xFFB56CFF,
+                                ).withValues(alpha: 0.8),
                                 width: 2,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFB56CFF).withValues(alpha: 0.35),
+                                  color: const Color(
+                                    0xFFB56CFF,
+                                  ).withValues(alpha: 0.35),
                                   blurRadius: 20,
                                   spreadRadius: 2,
                                 ),
@@ -154,7 +162,10 @@ class ProfileScreen extends StatelessWidget {
 
                 // ── CURRENT PLAN CARD ──
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -241,7 +252,9 @@ class ProfileScreen extends StatelessWidget {
                                     Text(
                                       'Next billing date',
                                       style: TextStyle(
-                                        color: Colors.white.withValues(alpha: 0.4),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.4,
+                                        ),
                                         fontSize: 11,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -297,7 +310,8 @@ class ProfileScreen extends StatelessWidget {
                       _buildOptionItem(
                         icon: Icons.bookmark_outline_rounded,
                         title: 'Watchlist',
-                        info: '$wishlistCount ${wishlistCount == 1 ? 'item' : 'items'}',
+                        info:
+                            '$wishlistCount ${wishlistCount == 1 ? 'item' : 'items'}',
                         onTap: () {
                           Navigator.push(
                             context,
@@ -310,8 +324,15 @@ class ProfileScreen extends StatelessWidget {
                       _buildOptionItem(
                         icon: Icons.download_outlined,
                         title: 'Downloads',
-                        info: '4.2 GB',
-                        onTap: () {},
+                        info: 'Offline',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const DownloadsScreen(),
+                            ),
+                          );
+                        },
                       ),
                       _buildOptionItem(
                         icon: Icons.history_rounded,
@@ -354,9 +375,7 @@ class ProfileScreen extends StatelessWidget {
           backgroundColor: const Color(0xFF1E1035),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(
-              color: Colors.white.withValues(alpha: 0.1),
-            ),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
           title: const Text(
             "Logout",
@@ -381,14 +400,19 @@ class ProfileScreen extends StatelessWidget {
                 if (context.mounted) {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
                     (route) => false,
                   );
                 }
               },
               child: const Text(
                 "Logout",
-                style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Color(0xFFEF4444),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -410,9 +434,7 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF130D22).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.04),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
       ),
       child: ListTile(
         onTap: onTap,
@@ -424,11 +446,7 @@ class ProfileScreen extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            icon,
-            color: iconColor ?? Colors.white,
-            size: 20,
-          ),
+          child: Icon(icon, color: iconColor ?? Colors.white, size: 20),
         ),
         title: Text(
           title,
