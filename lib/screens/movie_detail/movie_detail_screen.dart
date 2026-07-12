@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../player/video_player_screen.dart';
 import '../../models/movie.dart';
 import '../../utils/app_colors.dart';
-import '../../services/movie_service.dart';
-
 import '../../services/wishlist_service.dart';
 
 /// A premium movie detail screen matching the glassmorphic OTT design.
@@ -18,7 +16,6 @@ class MovieDetailScreen extends StatefulWidget {
 
 class _MovieDetailScreenState extends State<MovieDetailScreen>
     with SingleTickerProviderStateMixin {
-  final MovieService _movieService = MovieService();
   late AnimationController _animController;
   late Animation<double> _fadeIn;
   bool _isFavorited = false;
@@ -137,7 +134,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
 
                     const SizedBox(height: 24),
 
-                    // Director
                     // Director
                     if ((movie.director ?? '').isNotEmpty) ...[
                       Row(
@@ -271,21 +267,21 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      related.posterPath,
-                                      width: 120,
-                                      height: 170,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        width: 120,
-                                        height: 170,
-                                        color: Colors.grey.shade900,
-                                        child: const Icon(
-                                          Icons.movie,
-                                          color: Colors.white54,
-                                        ),
-                                      ),
-                                    ),
+                                    child: related.posterPath.startsWith('http')
+                                        ? Image.network(
+                                            related.posterPath,
+                                            width: 120,
+                                            height: 170,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) => _buildRelatedFallback(),
+                                          )
+                                        : Image.asset(
+                                            related.posterPath,
+                                            width: 120,
+                                            height: 170,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) => _buildRelatedFallback(),
+                                          ),
                                   ),
 
                                   const SizedBox(height: 8),
@@ -327,13 +323,22 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
         children: [
           // Background Poster
           Positioned.fill(
-            child: Image.network(
-              movie.bannerUrl?.isNotEmpty == true
+            child: () {
+              final imgPath = movie.bannerUrl?.isNotEmpty == true
                   ? movie.bannerUrl!
-                  : movie.posterPath,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _buildBackgroundFallback(),
-            ),
+                  : movie.posterPath;
+              return imgPath.startsWith('http')
+                  ? Image.network(
+                      imgPath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildBackgroundFallback(),
+                    )
+                  : Image.asset(
+                      imgPath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildBackgroundFallback(),
+                    );
+            }(),
           ),
 
           // Dark Gradient
