@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
 import 'about_screen.dart';
+import 'help_support_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback? onNavigateToProfile;
@@ -227,7 +228,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _buildNavigationItem(
                         icon: Icons.help_outline_rounded,
                         title: "Help & Support",
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HelpSupportScreen(),
+                            ),
+                          );
+                        },
                       ),
                       _divider(),
                       _buildNavigationItem(

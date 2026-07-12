@@ -12,6 +12,7 @@ import 'widgets/section_header.dart';
 import 'widgets/firestore_movie_list.dart';
 import '../../services/movie_service.dart';
 import 'widgets/hero_carousel.dart';
+import '../../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -206,7 +207,46 @@ class _HomeBody extends StatelessWidget {
                   const SizedBox(width: 12),
 
                   // Notification bell
-                  _iconButton(Icons.notifications_none_rounded),
+                  ValueListenableBuilder<List<Map<String, dynamic>>>(
+                    valueListenable: NotificationService().notificationsNotifier,
+                    builder: (context, notifications, _) {
+                      final unread = notifications.where((n) => !(n['isRead'] as bool)).length;
+                      return GestureDetector(
+                        onTap: () => _showNotificationsBottomSheet(context),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            _iconButton(Icons.notifications_none_rounded),
+                            if (unread > 0)
+                              Positioned(
+                                right: -2,
+                                top: -2,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFEF4444),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 16,
+                                    minHeight: 16,
+                                  ),
+                                  child: Text(
+                                    '$unread',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
 
                   const SizedBox(width: 8),
 
@@ -307,6 +347,131 @@ class _HomeBody extends StatelessWidget {
         border: Border.all(color: const Color(0xFF2E2444)),
       ),
       child: Icon(icon, color: Colors.white60, size: 22),
+    );
+  }
+
+  void _showNotificationsBottomSheet(BuildContext context) {
+    final service = NotificationService();
+    service.markAllAsRead();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF130D22),
+      barrierColor: Colors.black54,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return ValueListenableBuilder<List<Map<String, dynamic>>>(
+          valueListenable: service.notificationsNotifier,
+          builder: (context, notifications, _) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Notifications",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (notifications.isNotEmpty)
+                          TextButton(
+                            onPressed: () {
+                              service.clearAll();
+                            },
+                            child: const Text(
+                              "Clear All",
+                              style: TextStyle(color: Color(0xFFB56CFF), fontSize: 13),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const Divider(color: Colors.white10),
+                    const SizedBox(height: 10),
+                    if (notifications.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Icon(Icons.notifications_none_rounded, color: Colors.white24, size: 48),
+                              SizedBox(height: 12),
+                              Text(
+                                "No new notifications",
+                                style: TextStyle(color: Colors.white30, fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      Flexible(
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: notifications.length,
+                          separatorBuilder: (_, __) => const Divider(color: Colors.white10, height: 16),
+                          itemBuilder: (context, index) {
+                            final item = notifications[index];
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    item['icon'] as IconData? ?? Icons.info_outline_rounded,
+                                    color: const Color(0xFFB56CFF),
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item['title'] as String? ?? "",
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        item['message'] as String? ?? "",
+                                        style: const TextStyle(
+                                          color: Colors.white54,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
