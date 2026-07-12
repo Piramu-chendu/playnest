@@ -2,6 +2,7 @@ import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
+import '../../services/continue_watching_firestore.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String videoUrl;
@@ -11,13 +12,19 @@ class VideoPlayerScreen extends StatefulWidget {
     super.key,
     required this.videoUrl,
     required this.title,
+    this.posterPath,
   });
+
+  final String? posterPath;
 
   @override
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
 }
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
+  final ContinueWatchingFirestore _continueWatchingFirestore =
+      ContinueWatchingFirestore();
+
   late VideoPlayerController _videoController;
   ChewieController? _chewieController;
 
@@ -30,9 +37,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Future<void> _initializePlayer() async {
-    _videoController = VideoPlayerController.networkUrl(
-      Uri.parse(widget.videoUrl),
-    );
+    debugPrint("Video URL = ${widget.videoUrl}");
+    if (widget.videoUrl.startsWith('http')) {
+      // Online video (Trailer)
+      _videoController = VideoPlayerController.networkUrl(
+        Uri.parse(widget.videoUrl),
+      );
+    } else {
+      // Local video (Movie)
+      _videoController = VideoPlayerController.asset(widget.videoUrl);
+    }
 
     await _videoController.initialize();
 
@@ -91,7 +105,76 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   ? const CircularProgressIndicator(
                       color: Colors.deepPurpleAccent,
                     )
-                  : Chewie(controller: _chewieController!),
+                  : Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Chewie(controller: _chewieController!),
+
+                        // Rewind 10 sec
+                        Positioned(
+                          left: 40,
+                          child: CircleAvatar(
+                            radius: 28,
+                            backgroundColor: Colors.black54,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.replay_10,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                              onPressed: () async {
+                                final current = _videoController.value.position;
+                                final duration =
+                                    _videoController.value.duration;
+
+                                final target =
+                                    current + const Duration(seconds: 10);
+
+                                await _videoController.pause();
+                                await _videoController.seekTo(
+                                  target > duration ? duration : target,
+                                );
+                                await _videoController.play();
+
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                        ),
+
+                        // Forward 10 sec
+                        Positioned(
+                          right: 40,
+                          child: CircleAvatar(
+                            radius: 28,
+                            backgroundColor: Colors.black54,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.forward_10,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                              onPressed: () async {
+                                final current = _videoController.value.position;
+                                final duration =
+                                    _videoController.value.duration;
+
+                                final target =
+                                    current + const Duration(seconds: 10);
+
+                                await _videoController.pause();
+                                await _videoController.seekTo(
+                                  target > duration ? duration : target,
+                                );
+                                await _videoController.play();
+
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
             ),
 
             Positioned(
@@ -102,8 +185,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 backgroundColor: Colors.black54,
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () {
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    if (_videoController.value.isInitialized) {
+                      await _continueWatchingFirestore.saveProgress(
+                        title: widget.title,
+                        posterPath: widget.posterPath ?? "",
+                        videoPath: widget.videoUrl,
+                        position: _videoController.value.position.inSeconds,
+                        duration: _videoController.value.duration.inSeconds,
+                      );
+                    }
+
+                    if (mounted) {
+                      Navigator.pop(context, true);
+                    }
                   },
                 ),
               ),

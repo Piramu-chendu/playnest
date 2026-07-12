@@ -3,7 +3,7 @@ import '../player/video_player_screen.dart';
 import '../../models/movie.dart';
 import '../../utils/app_colors.dart';
 import '../../services/movie_service.dart';
-
+import '../../services/download_service.dart';
 import '../../services/wishlist_service.dart';
 
 /// A premium movie detail screen matching the glassmorphic OTT design.
@@ -19,10 +19,11 @@ class MovieDetailScreen extends StatefulWidget {
 class _MovieDetailScreenState extends State<MovieDetailScreen>
     with SingleTickerProviderStateMixin {
   final MovieService _movieService = MovieService();
+  final DownloadService _downloadService = DownloadService();
   late AnimationController _animController;
   late Animation<double> _fadeIn;
   bool _isFavorited = false;
-
+  bool _isDownloaded = false;
   @override
   void initState() {
     super.initState();
@@ -36,6 +37,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
       curve: Curves.easeOutCubic,
     );
     _animController.forward();
+    _checkDownloadStatus();
   }
 
   @override
@@ -600,17 +602,57 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     );
   }
 
+  Future<void> _checkDownloadStatus() async {
+    _isDownloaded = await _downloadService.isDownloaded(widget.movie.title);
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  // ── Play & Download buttons ──
   // ── Play & Download buttons ──
   Widget _buildActionButtons() {
     return Row(
       children: [
-        // Play button
+        // ================= PLAY BUTTON =================
         Expanded(
           child: GestureDetector(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Full movie coming soon")),
+            onTap: () async {
+              String localVideo = "";
+
+              switch (widget.movie.title) {
+                case "LIK":
+                  localVideo = "assets/videos/LIK.mp4";
+                  break;
+
+                case "Coolie":
+                  localVideo = "assets/videos/Coolie.mp4";
+                  break;
+
+                default:
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Movie not available locally"),
+                    ),
+                  );
+                  return;
+              }
+
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => VideoPlayerScreen(
+                    videoUrl: localVideo,
+                    title: widget.movie.title,
+                    posterPath: widget.movie.posterPath,
+                  ),
+                ),
               );
+
+              if (mounted) {
+                setState(() {});
+              }
             },
             child: Container(
               height: 50,
@@ -648,19 +690,67 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
 
         const SizedBox(width: 14),
 
-        // Download button
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-          ),
-          child: const Icon(
-            Icons.download_rounded,
-            color: Colors.white60,
-            size: 24,
+        // ================= DOWNLOAD BUTTON =================
+        GestureDetector(
+          onTap: () async {
+            if (_isDownloaded) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Movie already downloaded")),
+              );
+              return;
+            }
+
+            String localVideo = "";
+
+            switch (widget.movie.title) {
+              case "LIK":
+                localVideo = "assets/videos/LIK.mp4";
+                break;
+
+              case "Coolie":
+                localVideo = "assets/videos/Coolie.mp4";
+                break;
+
+              default:
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Offline movie not available")),
+                );
+                return;
+            }
+
+            await _downloadService.downloadMovie(
+              title: widget.movie.title,
+              posterPath: widget.movie.posterPath,
+              videoPath: localVideo,
+            );
+
+            setState(() {
+              _isDownloaded = true;
+            });
+
+            if (!mounted) return;
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("${widget.movie.title} downloaded successfully"),
+              ),
+            );
+          },
+          child: Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+            ),
+            child: Icon(
+              _isDownloaded
+                  ? Icons.check_circle_rounded
+                  : Icons.download_rounded,
+              color: _isDownloaded ? Colors.green : Colors.white60,
+              size: 24,
+            ),
           ),
         ),
       ],
