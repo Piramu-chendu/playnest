@@ -27,7 +27,7 @@ class _SearchScreenState extends State<SearchScreen> {
   // Static list of top search items matching user screenshot
   final Movie oppenheimer = const Movie(
     title: 'Oppenheimer',
-    posterPath: 'https://image.tmdb.org/t/p/w780/8FhOHQ62nZClv7g2tTYg562wb7U.jpg',
+    posterPath: 'assets/trending assets/oppenheimer-poster.avif',
     genre: 'Biography',
     rating: 8.4,
     description: 'The story of J. Robert Oppenheimer\'s role in the development of the atomic bomb during World War II.',
@@ -46,7 +46,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   final Movie avatar = const Movie(
     title: 'Avatar: The Way of Water',
-    posterPath: 'https://image.tmdb.org/t/p/w500/t6z0a1k11Q6QAe0ujEM4nK536Ju.jpg',
+    posterPath: 'assets/trending assets/Avatar the water ways.jpg',
     genre: 'Sci-Fi',
     rating: 7.6,
     description: 'Jake Sully lives with his newfound family on Pandora. When a familiar threat returns, he must protect their home.',
@@ -65,7 +65,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   final Movie johnWick = const Movie(
     title: 'John Wick: Chapter 4',
-    posterPath: 'https://image.tmdb.org/t/p/w500/vZ0K0u4423rJee68mTMlKuw812Z.jpg',
+    posterPath: 'assets/trending assets/John wick 4.webp',
     genre: 'Action',
     rating: 7.7,
     description: 'John Wick uncovers a path to defeating The High Table. But first, he must face a new enemy with powerful alliances.',
@@ -84,7 +84,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   final Movie spiderman = const Movie(
     title: 'Spider-Man: Across the Spider-Verse',
-    posterPath: 'https://image.tmdb.org/t/p/w500/8VtB7vST242NpjS7wt8vLX6fb9w.jpg',
+    posterPath: 'assets/trending assets/spiderman across the spiderverse.jpg',
     genre: 'Animation',
     rating: 8.6,
     description: 'Miles Morales is catapulted across the Multiverse, encountering the Spider-Society protecting its existence.',
@@ -103,7 +103,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   final Movie dune = const Movie(
     title: 'Dune: Part Two',
-    posterPath: 'https://image.tmdb.org/t/p/w500/czembhyVFlkr6HQzkjXL562JtQQ.jpg',
+    posterPath: 'assets/trending assets/dunepart2.webp',
     genre: 'Sci-Fi',
     rating: 8.6,
     description: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.',
@@ -527,20 +527,35 @@ class _SearchScreenState extends State<SearchScreen> {
                 Positioned.fill(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      oppenheimer.posterPath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF2D1B4E), Color(0xFF09050F)],
+                    child: oppenheimer.posterPath.startsWith('http')
+                        ? Image.network(
+                            oppenheimer.posterPath,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Color(0xFF2D1B4E), Color(0xFF09050F)],
+                                ),
+                              ),
+                              child: const Center(
+                                child: Icon(Icons.movie_outlined, color: Colors.white30, size: 50),
+                              ),
+                            ),
+                          )
+                        : Image.asset(
+                            oppenheimer.posterPath,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Color(0xFF2D1B4E), Color(0xFF09050F)],
+                                ),
+                              ),
+                              child: const Center(
+                                child: Icon(Icons.movie_outlined, color: Colors.white30, size: 50),
+                              ),
+                            ),
                           ),
-                        ),
-                        child: const Center(
-                          child: Icon(Icons.movie_outlined, color: Colors.white30, size: 50),
-                        ),
-                      ),
-                    ),
                   ),
                 ),
                 // Gradient overlay
