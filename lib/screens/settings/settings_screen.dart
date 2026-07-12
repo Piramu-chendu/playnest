@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
+import 'about_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback? onNavigateToProfile;
@@ -233,8 +234,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         icon: Icons.info_outline_rounded,
                         title: "About",
                         trailingText: "v2.4.0",
-                        showArrow: false,
-                        onTap: () {},
+                        showArrow: true,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AboutScreen(),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),

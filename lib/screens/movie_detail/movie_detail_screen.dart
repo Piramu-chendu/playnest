@@ -2,11 +2,6 @@ import 'package:flutter/material.dart';
 import '../player/video_player_screen.dart';
 import '../../models/movie.dart';
 import '../../utils/app_colors.dart';
-import '../../services/movie_service.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../../models/movie.dart';
-import '../../utils/app_colors.dart';
 import '../../services/wishlist_service.dart';
 
 /// A premium movie detail screen matching the glassmorphic OTT design.
@@ -21,7 +16,6 @@ class MovieDetailScreen extends StatefulWidget {
 
 class _MovieDetailScreenState extends State<MovieDetailScreen>
     with SingleTickerProviderStateMixin {
-  final MovieService _movieService = MovieService();
   late AnimationController _animController;
   late Animation<double> _fadeIn;
   bool _isFavorited = false;
@@ -45,6 +39,25 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
   void dispose() {
     _animController.dispose();
     super.dispose();
+  }
+
+  void _playTrailer() {
+    if (widget.movie.trailerUrl == null || widget.movie.trailerUrl!.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Trailer not available")));
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VideoPlayerScreen(
+          videoUrl: widget.movie.trailerUrl!,
+          title: widget.movie.title,
+        ),
+      ),
+    );
   }
 
   @override
@@ -121,7 +134,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
 
                     const SizedBox(height: 24),
 
-                    // Director
                     // Director
                     if ((movie.director ?? '').isNotEmpty) ...[
                       Row(
@@ -255,21 +267,21 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      related.posterPath,
-                                      width: 120,
-                                      height: 170,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        width: 120,
-                                        height: 170,
-                                        color: Colors.grey.shade900,
-                                        child: const Icon(
-                                          Icons.movie,
-                                          color: Colors.white54,
-                                        ),
-                                      ),
-                                    ),
+                                    child: related.posterPath.startsWith('http')
+                                        ? Image.network(
+                                            related.posterPath,
+                                            width: 120,
+                                            height: 170,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) => _buildRelatedFallback(),
+                                          )
+                                        : Image.asset(
+                                            related.posterPath,
+                                            width: 120,
+                                            height: 170,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) => _buildRelatedFallback(),
+                                          ),
                                   ),
 
                                   const SizedBox(height: 8),
@@ -284,32 +296,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                                     ),
                                   ),
                                 ],
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: related.posterPath.startsWith('http')
-                                    ? Image.network(
-                                        related.posterPath,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, _, _) => _buildRelatedFallback(),
-                                      )
-                                    : Image.asset(
-                                        related.posterPath,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, _, _) => _buildRelatedFallback(),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              related.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -329,69 +315,31 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     );
   }
 
-  Future<void> _launchTrailer() async {
-    final urlStr = widget.movie.trailerUrl;
-    if (urlStr != null && urlStr.isNotEmpty) {
-      final uri = Uri.tryParse(urlStr);
-      if (uri != null && await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Could not launch trailer URL")),
-          );
-        }
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Trailer not available")),
-        );
-      }
-    }
-  }
-
   // ── Hero Poster with Overlay + Expandable Trailer ──
   Widget _buildHeroPoster(Movie movie, double screenWidth) {
     return SizedBox(
       height: 420,
       child: Stack(
         children: [
-          // Background poster
+          // Background Poster
           Positioned.fill(
-            child: Image.network(movie.posterPath, fit: BoxFit.cover),
+            child: () {
+              final imgPath = movie.bannerUrl?.isNotEmpty == true
+                  ? movie.bannerUrl!
+                  : movie.posterPath;
+              return imgPath.startsWith('http')
+                  ? Image.network(
+                      imgPath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildBackgroundFallback(),
+                    )
+                  : Image.asset(
+                      imgPath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildBackgroundFallback(),
+                    );
+            }(),
           ),
-    return Column(
-      children: [
-        // ── Poster / Trailer Area ──
-        SizedBox(
-          height: 420,
-          child: Stack(
-            children: [
-              // Background: poster or inline trailer
-              Positioned.fill(
-                child: _isTrailerExpanded && _ytController != null
-                    ? Container(
-                        color: Colors.black,
-                        child: Center(
-                          child: YoutubePlayer(
-                            controller: _ytController!,
-                            aspectRatio: 16 / 9,
-                          ),
-                        ),
-                      )
-                    : movie.posterPath.startsWith('http')
-                        ? Image.network(
-                            movie.posterPath,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => _buildBackgroundFallback(),
-                          )
-                        : Image.asset(
-                            movie.posterPath,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => _buildBackgroundFallback(),
-                          ),
-              ),
 
           // Dark Gradient
           Positioned.fill(
@@ -410,146 +358,54 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
             ),
           ),
 
-              // Top buttons – Back, Share, Favorite
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _glassButton(icon: Icons.share_rounded, onTap: () {}),
-                        const SizedBox(width: 10),
-                        _glassButton(
-                          icon: _isFavorited
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                          onTap: () {
-                            setState(() => _isFavorited = !_isFavorited);
-                          },
-                          color: _isFavorited ? Colors.redAccent : null,
-                        _glassButton(
-                          icon: Icons.arrow_back_rounded,
-                          onTap: () => Navigator.pop(context),
-                        ),
-                        Row(
-                          children: [
-                            _glassButton(
-                              icon: Icons.share_rounded,
-                              onTap: () {},
-                            ),
-                            const SizedBox(width: 10),
-                            _glassButton(
-                              icon: _isFavorited
-                                  ? Icons.favorite_rounded
-                                  : Icons.favorite_border_rounded,
-                              onTap: () {
-                                WishlistService().toggleWatchlist(widget.movie);
-                                setState(() {
-                                  _isFavorited = !_isFavorited;
-                                });
-                              },
-                              color: _isFavorited ? Colors.redAccent : null,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+          // Top Buttons
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _glassButton(
+                    icon: Icons.arrow_back_ios_new_rounded,
+                    onTap: () => Navigator.pop(context),
                   ),
-                ),
-              ),
 
-          // Play trailer button (center)
-          Positioned.fill(
-            child: Center(
-              child: GestureDetector(
-                onTap: _playTrailer,
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primary.withValues(alpha: 0.85),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.5),
-                        blurRadius: 24,
-                        spreadRadius: 2,
-              // Play trailer button (center) – only when poster is showing
-              if (!_isTrailerExpanded)
-                Positioned.fill(
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        if (_ytController != null) {
-                          setState(() => _isTrailerExpanded = true);
-                          _ytController!.playVideo();
-                        } else {
-                          _launchTrailer();
-                        }
-                      },
-                      child: Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.primary.withValues(alpha: 0.85),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.5),
-                              blurRadius: 24,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
-                            width: 2,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.play_arrow_rounded,
-                          color: Colors.white,
-                          size: 36,
-                        ),
-                      ),
-                    ),
+                  _glassButton(
+                    icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
+                    color: _isFavorited ? Colors.red : Colors.white,
+                    onTap: () {
+                      WishlistService().toggleWatchlist(movie);
+
+                      setState(() {
+                        _isFavorited = WishlistService().isInWatchlist(movie);
+                      });
+                    },
                   ),
-                ),
+                ],
               ),
             ),
           ),
+
+          // Trailer Badge
           Positioned(
             left: 20,
-            bottom: 60,
+            bottom: 95,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
                 color: Colors.redAccent,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.redAccent.withValues(alpha: 0.4),
-                    blurRadius: 10,
-                  ),
-                ],
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.play_arrow_rounded, color: Colors.white, size: 16),
+                  Icon(Icons.play_arrow, color: Colors.white, size: 16),
                   SizedBox(width: 4),
                   Text(
                     "TRAILER",
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
                       letterSpacing: 1,
                     ),
                   ),
@@ -557,225 +413,106 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
               ),
             ),
           ),
-          // IMDb-style rating badge & watchlist pill at bottom-left
+          // Center Play Button
+          Center(
+            child: GestureDetector(
+              onTap: _playTrailer,
+              child: Container(
+                width: 95,
+                height: 95,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF8B5CF6), Color(0xFFB56CFF)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.45),
+                      blurRadius: 30,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 58,
+                ),
+              ),
+            ),
+          ),
+
+          // IMDb Rating Badge
+          if (movie.rating != null)
+            Positioned(
+              left: 20,
+              bottom: 32,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5C542),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  "${movie.rating!.toStringAsFixed(1)}/10 IMDb",
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+
+          // Watchlist Pill
           Positioned(
-            left: 20,
-            bottom: 10,
-            child: Row(
-              children: [
-                if (movie.rating != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5C518),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          movie.rating!.toStringAsFixed(1),
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
+            left: movie.rating != null ? 135 : 20,
+            bottom: 32,
+            child: GestureDetector(
+              onTap: () {
+                WishlistService().toggleWatchlist(movie);
 
-              // IMDb-style rating badge & watchlist pill at bottom-left
-              if (!_isTrailerExpanded)
-                Positioned(
-                  left: 20,
-                  bottom: 10,
-                  child: Row(
-                    children: [
-                      if (movie.rating != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5C518),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                movie.rating!.toStringAsFixed(1),
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const Text(
-                                "/10",
-                                style: TextStyle(
-                                  color: Colors.black54,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Text(
-                                "IMDb",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(width: 10),
-                      GestureDetector(
-                        onTap: () {
-                          WishlistService().toggleWatchlist(movie);
-                          setState(() {
-                            _isFavorited = WishlistService().isInWatchlist(movie);
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _isFavorited
-                                ? const Color(0xFF8B5CF6).withValues(alpha: 0.25)
-                                : Colors.white.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: _isFavorited
-                                  ? const Color(0xFF8B5CF6).withValues(alpha: 0.6)
-                                  : Colors.white.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _isFavorited ? Icons.check_rounded : Icons.add,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _isFavorited ? "ADDED" : "WATCHLIST",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.8,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                setState(() {
+                  _isFavorited = WishlistService().isInWatchlist(movie);
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _isFavorited ? Icons.favorite : Icons.add,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      "WATCHLIST",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
                       ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-
-        // ── Trailer Toggle Button ──
-        if (_ytController != null)
-          _buildTrailerToggle(),
-      ],
-    );
-  }
-
-  // ── Expandable Trailer Toggle Button ──
-  Widget _buildTrailerToggle() {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isTrailerExpanded = !_isTrailerExpanded;
-          if (_isTrailerExpanded) {
-            _ytController!.playVideo();
-          } else {
-            _ytController!.pauseVideo();
-          }
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: _isTrailerExpanded
-                ? [const Color(0xFF8B5CF6).withValues(alpha: 0.25), const Color(0xFFB56CFF).withValues(alpha: 0.15)]
-                : [Colors.white.withValues(alpha: 0.08), Colors.white.withValues(alpha: 0.04)],
-          ),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: _isTrailerExpanded
-                ? AppColors.primary.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.12),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: _isTrailerExpanded
-                      ? [const Color(0xFF8B5CF6), const Color(0xFFB56CFF)]
-                      : [Colors.white.withValues(alpha: 0.15), Colors.white.withValues(alpha: 0.08)],
+                    ),
+                  ],
                 ),
               ),
-              child: Icon(
-                _isTrailerExpanded ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _isTrailerExpanded ? "Now Playing Trailer" : "Watch Trailer",
-                    style: TextStyle(
-                      color: _isTrailerExpanded ? AppColors.primary : Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _isTrailerExpanded ? "Tap to collapse" : "Tap to expand & play",
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.4),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            AnimatedRotation(
-              turns: _isTrailerExpanded ? 0.5 : 0,
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: _isTrailerExpanded ? AppColors.primary : Colors.white54,
-                size: 24,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -876,15 +613,9 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
         Expanded(
           child: GestureDetector(
             onTap: () {
-              // TODO: Play Full Movie
-              if (_ytController != null) {
-                setState(() {
-                  _isTrailerExpanded = true;
-                });
-                _ytController!.playVideo();
-              } else {
-                _launchTrailer();
-              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Full movie coming soon")),
+              );
             },
             child: Container(
               height: 50,
@@ -1057,6 +788,35 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     Color(0xFF6366F1),
     Color(0xFF14B8A6),
   ];
+
+  // ── Related movies (simple matching by genre) ──
+  List<Movie> _getRelatedMovies(Movie current) {
+    final allMovies = [
+      ...MovieData.trending,
+      ...MovieData.popular,
+      ...MovieData.recommended,
+    ];
+
+    // Remove duplicates by title
+    final seen = <String>{};
+    final unique = <Movie>[];
+    for (final m in allMovies) {
+      if (m.title != current.title && seen.add(m.title)) {
+        unique.add(m);
+      }
+    }
+
+    // Prefer same genre movies first
+    if (current.genre != null) {
+      unique.sort((a, b) {
+        final aMatch = a.genre == current.genre ? 0 : 1;
+        final bMatch = b.genre == current.genre ? 0 : 1;
+        return aMatch.compareTo(bMatch);
+      });
+    }
+
+    return unique.take(6).toList();
+  }
 
   Widget _buildBackgroundFallback() {
     return Container(
